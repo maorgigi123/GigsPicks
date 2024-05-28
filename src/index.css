@@ -1,0 +1,54 @@
+@font-face {
+  font-family: angalina;
+  src: url('./assets/Angelina-rnlA.otf');
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --primary-button: rgb(0,149,246);
+  --primary-button-hover : #1d85fc;
+  --link: rgb(0,55,107);
+  --gray:#323436
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif ;
+
+}
+h1{
+  font-family: angalina;
+}
+body{
+  height: 100%;
+  width: 100%;
+  background-color: black;
+}
+
+body.active-modal{
+  overflow: hidden;
+  
+}
+
+a{
+  text-decoration: none;
+  color:var(--link);
+}
+img{
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
