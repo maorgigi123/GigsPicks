@@ -196,13 +196,14 @@ const SavedSelect = styled.div`
 `;
 
 const PostsContainer = styled.div`
-  width: 100%;
-  min-height: 800px;  
-  margin-top: 50px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr; 
-  grid-template-rows: repeat(auto-fit,280px);
-  grid-gap:5px;
+ width: 100%;
+min-height: 1000px;  
+margin-top: 50px;
+overflow-y: auto; /* Changed to auto */
+display: grid;
+grid-template-columns: 1fr 1fr 1fr; 
+grid-template-rows: repeat(auto-fit, minmax(280px, 1fr));
+grid-gap: 5px;
 
   margin-bottom: 100px;
 `;
@@ -319,7 +320,7 @@ const navigateToEditProfile = () => {
           {/* Get Posts user.posts */}
           {/* update it to show only user posts when i build post create */}
           {/* {(user.posts > 4) && posts.map((post) => <ProfilePosts key={nanoid()} post={post} />) } */}
-          {allPosts && allPosts.map((post) => <ProfilePosts key={nanoid()} post={post} />)}
+          {allPosts && allPosts.map((post) => <ProfilePosts key={post._id} post={post} />)}
         </PostsContainer>
 
 

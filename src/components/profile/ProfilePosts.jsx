@@ -36,7 +36,7 @@ const PostInfoContainer = styled.div`
 `;
 const PostContainer = styled.div`
     background-image: url(${props => props.$image});
-    height: 100%;
+    height: 280px;
     width: 100%;
     background-size: cover;
     position: relative;
@@ -63,7 +63,7 @@ const PostContainerVideoObject = styled.video`
 `;
 
 const PostContainerVideo = styled.div`
-    height: 100%;
+    height: 280px;
     width: 100%;
     background-size: cover;
     position: relative;
