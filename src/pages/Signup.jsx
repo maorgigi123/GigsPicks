@@ -259,7 +259,7 @@ const Signup = () => {
                 <InputLogin placeholder='Password' name='password' type='password' required/>
                 <ContainerBottomText>
                     <BottomText>
-                        People who use our service may have uploaded your contact information to Instagram. <BottomLink href="#">Learn More</BottomLink>
+                        People who use our service may have uploaded your contact information to Gigs. <BottomLink href="#">Learn More</BottomLink>
                     </BottomText>
                     <BottomText>
                         By signing up, you agree to our <BottomLink href="#">Terms , Privacy Policy and Cookies Policy .</BottomLink>
