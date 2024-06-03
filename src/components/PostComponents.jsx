@@ -217,6 +217,37 @@ const SliderContent = styled.div`
   display: flex;
   transition: transform 0.5s ease;
 `;
+
+const AllImagesSlider = styled.div`
+  position: absolute;
+  z-index: 2;
+  top: 485px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 5px;
+  overflow-x: scroll;
+`;
+
+const ImageSlide = styled.div`
+  position: relative;
+  cursor: pointer;
+  height: 10px;
+  width: 10px;
+  z-index: 1;
+  background-color: ${({$selected}) => ($selected === true) ? 'blue' : 'lightgray'};
+  border-radius: 50%;
+  &:hover{
+    border-radius: 30%;
+    opacity:.8;
+  }
+`;
+
+
+
+
+
 const handleClickVideo = (e, PauseRef) => {
   if (e.target.paused) {
     PauseRef.current.style.display = "none";
@@ -309,6 +340,23 @@ const PostComponents = ({ post, isLike }) => {
       return count;
     });
   };
+
+  const MoveToImage = (_idx) =>{
+    setIndex(_idx)
+    if (post.post_imgs[_idx].type.toString().startsWith('video')) {
+      if(Volume_Container.current)
+          Volume_Container.current.style.display = 'flex';
+      // Apply logic for video
+      } else {
+        if(PauseRef.current && Volume_Container.current) 
+          {
+            PauseRef.current.style.display='none';
+            Volume_Container.current.style.display = 'none';
+          }
+         
+      }
+
+  }
 
   useEffect(() => {
     setLike(isLike);
@@ -474,6 +522,18 @@ const PostComponents = ({ post, isLike }) => {
         )}
       </React.Fragment>
     ))}
+
+    {post.post_imgs.length > 1 &&<AllImagesSlider>
+          { post.post_imgs.map((img,_idx) =>{
+            let selected = false;
+            if(_idx === index)
+              {
+                selected= true
+              }
+              return <ImageSlide $selected={selected} onClick={() =>{MoveToImage(_idx)}}> </ImageSlide>
+            })}
+    </AllImagesSlider>
+    }
     {post.post_imgs.length > 1 && index > 0 &&(
       <LeftButton
         onClick={() => {
