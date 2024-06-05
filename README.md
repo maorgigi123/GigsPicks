@@ -1,5 +1,66 @@
-# React + Vite
-
 # GigsPicks
 
-social media
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+## Description
+GigsPicks is a social media platform designed to help users discover and share exciting gigs, concerts, and live events. Connect with friends, follow your favorite artists, and never miss a show again!
+
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Features
+- Discover gigs and events based on your interests.
+- Share events with friends and invite them.
+- Follow artists and get notified about their upcoming gigs.
+- Post and share your experiences with the community.
+- Integrated chat for real-time communication.
+
+## Installation
+Follow these steps to install and set up GigsPicks locally:
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/gigspicks.git
+    ```
+
+2. Navigate to the project directory:
+    ```bash
+    cd gigspicks
+    ```
+
+3. Install dependencies:
+    ```bash
+    npm install
+    ```
+
+<!-- 4. Set up the environment variables:
+    - Create a `.env` file in the root directory.
+    - Add your API keys and other configuration details:
+      ```env
+      DATABASE_URL=your_database_url
+      API_KEY=your_api_key
+      ``` -->
+
+4. Run the development server:
+    ```bash
+    npm start
+    ```
+
+## Usage
+Here's a basic example of how to use GigsPicks:
+
+1. Sign up and create a profile.
+2. Browse the home feed for upcoming gigs.
+3. Follow your favorite artists to get personalized notifications.
+4. Share and discuss events with friends through posts and chats.
+
+## Screenshots
+![Home Feed]('/img/GigsPicks.avif')
+*Caption: Ho
