@@ -65,7 +65,7 @@ Here's a basic example of how to use GigsPicks:
 ![Home Feed](public/img/GigsPicks.avif)
 *Caption: Home Feed showcasing upcoming gigs.*
 
-![Event Details](public/img/GigsPicks.avif)
+![Event Details](public/img/ProfileScreenShot.png)
 *Caption: Detailed view of a selected event.*
 
 ## Contributing
