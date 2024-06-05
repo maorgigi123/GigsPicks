@@ -1,6 +1,6 @@
 # GigsPicks
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Build Status](https://img.shields.io/badge/status-in_progress-yellow)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## Description
@@ -15,19 +15,19 @@ GigsPicks is a social media platform designed to help users discover and share e
 - [License](#license)
 - [Contact](#contact)
 
-## Features
-- Discover gigs and events based on your interests.
-- Share events with friends and invite them.
-- Follow artists and get notified about their upcoming gigs.
-- Post and share your experiences with the community.
-- Integrated chat for real-time communication.
+## Features (Current)
+- Sign up and create a profile.
+- Browse the home feed for upcoming gigs.
+- Share and discuss events with friends through posts and chats.
+- Update profile image.
+- View other users' profiles.
 
 ## Installation
-Follow these steps to install and set up GigsPicks locally:
+*Note: GigsPicks is currently under development. Installation steps are for setting up the development environment.*
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/gigspicks.git
+    git clone https://github.com/maorgigi123/gigspicks.git
     ```
 
 2. Navigate to the project directory:
@@ -58,8 +58,9 @@ Here's a basic example of how to use GigsPicks:
 
 1. Sign up and create a profile.
 2. Browse the home feed for upcoming gigs.
-3. Follow your favorite artists to get personalized notifications.
-4. Share and discuss events with friends through posts and chats.
+3. Share and discuss events with friends through posts and chats.
+4. Update your profile image.
+5. View other users' profiles.
 
 ## Screenshots
 ![Home Feed](public/img/GigsPicks.avif)
