@@ -66,7 +66,7 @@ Here's a basic example of how to use GigsPicks:
 *Caption: Home Feed showcasing upcoming gigs.*
 
 ![Event Details](public/img/ProfileScreenShot.png)
-*Caption: Detailed view of a selected event.*
+*Caption: Profile User Feed showcasing upcoming gigs.*
 
 ## Contributing
 We welcome contributions! Please follow these steps to contribute:
