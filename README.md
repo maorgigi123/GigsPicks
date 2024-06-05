@@ -62,5 +62,29 @@ Here's a basic example of how to use GigsPicks:
 4. Share and discuss events with friends through posts and chats.
 
 ## Screenshots
-![Home Feed]('/img/GigsPicks.avif')
-*Caption: Ho
+![Home Feed](public/img/GigsPicks.avif)
+*Caption: Home Feed showcasing upcoming gigs.*
+
+![Event Details](public/img/GigsPicks.avif)
+*Caption: Detailed view of a selected event.*
+
+## Contributing
+We welcome contributions! Please follow these steps to contribute:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/your-feature`).
+3. Make your changes.
+4. Commit your changes (`git commit -m 'Add some feature'`).
+5. Push to the branch (`git push origin feature/your-feature`).
+6. Open a pull request.
+
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for more details on our code of conduct and the process for submitting pull requests.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Contact
+Your Name - [protoflio](https://gigscoder.com/) - gigigamescompany@gmail.com
+
+Feel free to reach out if you have any questions or need further assistance.
+
