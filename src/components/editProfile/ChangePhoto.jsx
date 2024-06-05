@@ -12,7 +12,7 @@ const Container = styled.div`
 const ChangePhoto = () => {
   return (
     <SelectImages>
-            <Input type="file" name='images' accept="image/jpeg, image/png, image/jpg" multiple onClick={() => setError('')} onChange={HandleImage}/>
+            <Input type="file" name='images' accept="image/*" multiple onClick={() => setError('')} onChange={HandleImage}/>
             Select from computer
     </SelectImages>
   )

@@ -530,7 +530,7 @@ const PostComponents = ({ post, isLike }) => {
               {
                 selected= true
               }
-              return <ImageSlide $selected={selected} onClick={() =>{MoveToImage(_idx)}}> </ImageSlide>
+              return <ImageSlide key={_idx} $selected={selected} onClick={() =>{MoveToImage(_idx)}}> </ImageSlide>
             })}
     </AllImagesSlider>
     }

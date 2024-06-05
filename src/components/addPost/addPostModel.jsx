@@ -352,7 +352,7 @@ const AddPostModel = ({OnClickCreate}) => {
   const ImageRef = useRef();
   const content = useRef();
   const tagsRef = useRef();
-const videoRef = useRef()
+  const videoRef = useRef()
 
   const user = useSelector(selectCurrentUser);
 
@@ -393,9 +393,6 @@ const RemoveTag = (tag) => {
     }
   };
 
-  
-
-
   const ChangeImage =(countDown) => {
       setIndex((curIndex) =>{
           let count = curIndex;
@@ -412,10 +409,10 @@ const RemoveTag = (tag) => {
           if(videoRef.current)
             {
               if(previewImage[index].split(':')[1].split('/')[0] === 'video') 
-                  videoRef.current.src = previewImage[count]
+                  videoRef.current.src = selectedFiles[count].data
             }
           if(ImageRef.current)
-            ImageRef.current.src= previewImage[count]
+            ImageRef.current.src= selectedFiles[count].data
             
           // if(!editImage)
           //   {
@@ -503,14 +500,6 @@ const RemoveTag = (tag) => {
       return setError('Cant upload empty posts')
     }
     const folder = user.username;
-    // await selectedFiles.map((file) => {
-    //   if(file.type.split('/')[0] === 'video')
-    //     {
-
-    //       generateVideoThumbnails(file,1).then(thumbs => console.log(thumbs))
-    //       }
-    // })
-    // return
     try {
  
         const response = await axios.post('http://localhost:3001/uploadPost', {
@@ -528,6 +517,7 @@ const RemoveTag = (tag) => {
         setCroppedArea([])
         setError('')
         setTags([])
+        OnClickCreate()
       } catch (error) {
         setError('Something went wrong, try again');
         console.error('Error uploading file:', error);
@@ -724,7 +714,7 @@ const RemoveTag = (tag) => {
             </DragText>
 
             <SelectImages>
-                <Input type="file" name='images' accept="image/jpeg, image/png, image/jpg,video/*" multiple onClick={() => setError('')} onChange={HandleImage}/>
+                <Input type="file" name='images' accept="image/*,video/*" multiple onClick={() => setError('')} onChange={HandleImage}/>
                 Select from computer
             </SelectImages>
 

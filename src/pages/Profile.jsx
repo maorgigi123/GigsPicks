@@ -6,7 +6,7 @@ import ProfileLayout from '../components/profile/ProfileLayout';
 import styled from 'styled-components';
 import { selectCurrentUser } from '../store/user/user.selector';
 import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const ProfileContainer = styled.div`
     min-height: 100vh;
@@ -17,17 +17,7 @@ const ProfileContainer = styled.div`
     margin-left: 150px;
 `;
 
-const Profile = () => {
-    const {username} = useParams();
-    const user = useSelector(selectCurrentUser)
-    const navigate = useNavigate();
-    
-    useEffect(()=>{
-        if(!user){
-            navigate('/')
-        }
-    },[user])
-    
+const Profile = () => {    
     return (
         <ProfileContainer>
             <NavBar/>

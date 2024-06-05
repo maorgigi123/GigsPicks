@@ -89,7 +89,7 @@ const Posts = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && !isLoading) {
+      if (Math.ceil((window.innerHeight + window.scrollY)) >= document.body.offsetHeight && !isLoading) {
         fetchPosts();
       }
     };
