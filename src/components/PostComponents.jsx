@@ -4,6 +4,10 @@ import ProfileImage from "./ProfileImage";
 import TextComponent from "../utils/TextComponent";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../store/user/user.selector";
+import PreviewPost from "./previewPost/previewPost";
+import ReactDOM from 'react-dom';
+import EmojiPicker, { Theme } from "emoji-picker-react";
+
 
 const Post = styled.div`
   display: flex;
@@ -27,9 +31,10 @@ const PostTopLayoutContainer = styled.div`
 const PostTopLayoutImage = styled.div`
   padding: 6px;
 `;
-const PostTopLayoutName = styled.p`
+const PostTopLayoutName = styled.a`
   font-weight: bold;
   cursor: pointer;
+  color: lightgray;
 `;
 const PostTopLayoutDay = styled.p``;
 
@@ -105,6 +110,8 @@ const PostImage = styled.img`
   flex-shrink: 0;
   flex-grow: 0;
   transition: translate 300ms ease-in-out;
+  object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
+  display: block;       /* Removes any default inline spacing */
 `;
 
 const PostVideo = styled.video`
@@ -116,6 +123,8 @@ const PostVideo = styled.video`
   flex-shrink: 0;
   flex-grow: 0;
   transition: translate 300ms ease-in-out;
+  object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
+  display: block;       /* Removes any default inline spacing */
 `;
 
 const IconsBottonPost = styled.div`
@@ -184,7 +193,7 @@ const Line = styled.div`
 const PauseButton = styled.div`
   width: 80px;
   height: 80px;
-  background-image: url("../public/img/pause.png");
+  background-image: url("/img/pause.png");
   background-size: cover;
   position: absolute;
   top: 50%;
@@ -209,9 +218,11 @@ const VolumeContainer = styled.div`
   right: 4px;
 `;
 
-const VolumIcon = styled.div``;
-const MuteIcon = styled.div`
+const VolumIcon = styled.div`
   display: none;
+`;
+const MuteIcon = styled.div`
+  display: block;
 `;
 const SliderContent = styled.div`
   display: flex;
@@ -243,10 +254,58 @@ const ImageSlide = styled.div`
     opacity:.8;
   }
 `;
+const AllCommentsPreview = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 5px;
+`;
+
+const ContainerCommentsPrevire = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+`;
+
+const CommentsPreviewLeft = styled.div`
+  font-size:.8em;
+  display: flex;
+  gap: 10px;
+`;
+
+const CommentsPreviewName = styled.p`
+  color: white;
+  cursor: pointer;
+`;
+
+const CommentPreviewContant = styled.p``;
 
 
+const SmileComments = styled.div`
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+`;
+const EmojiPickerButton = styled(EmojiPicker)`
+  top: -490px;
+`;
 
+const EmojiInputContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+`;
 
+const ContainerPreviewAdd = ({post}) => {
+    return <ContainerCommentsPrevire>
+        <CommentsPreviewLeft>
+        <CommentsPreviewName>{post.user_id.username}</CommentsPreviewName>
+        <CommentPreviewContant>{post.content}</CommentPreviewContant>
+        </CommentsPreviewLeft>
+        <IconHeart className="mif-heart"/>
+    </ContainerCommentsPrevire>
+}
 
 const handleClickVideo = (e, PauseRef) => {
   if (e.target.paused) {
@@ -257,19 +316,35 @@ const handleClickVideo = (e, PauseRef) => {
     e.target.pause();
   }
 };
-const PostComponents = ({ post, isLike }) => {
+const PostComponents = ({ post, isLike,setPosts }) => {
   const [index, setIndex] = useState(0);
   const [like, setLike] = useState(false);
   const [imageVisible, setImageVisible] = useState(true);
   const [videoVisible, setVideoVisible] = useState(false);
-  const [volume,setVolume] = useState(true)
+  const [volume,setVolume] = useState(false)
+  const [showAllComments,setShowAllComments] = useState(false)
+  const [openEmoji,setOpenEmoji] = useState(false)
   const ImageRef = useRef();
   const PauseRef = useRef();
+  const CommentInputRef = useRef()
   const VolumeIconRef = useRef();
   const MuteIconRef = useRef();
   const Volume_Container = useRef();
   const user = useSelector(selectCurrentUser);
   const videoRef = useRef(null);
+
+
+  const handleShowAllComments = () => {
+    setShowAllComments((prev) =>  {
+      if(prev === true){
+      document.body.classList.remove('active-modal')
+      return false;
+      }else{
+          document.body.classList.add('active-modal')
+          return true;
+      }
+  })
+  }
 
   const addLike = (post) => {
     console.log(user._id, post._id);
@@ -364,10 +439,12 @@ const PostComponents = ({ post, isLike }) => {
       ([entry]) => {
         // Update state based on intersection status
         if (!videoRef.current) return;
+        
         if (entry.isIntersecting) {
           setVideoVisible(true);
-          PauseRef.current.style.display = "none";
-          videoRef.current.play();
+          if(PauseRef.current)
+            PauseRef.current.style.display = "none";
+          videoRef.current.play()
         } else {
         //   setVideoVisible(false);
           videoRef.current.pause();
@@ -422,45 +499,83 @@ const PostComponents = ({ post, isLike }) => {
     };
   }, []);
 
-  const CalcData = (date) =>{
-    const currentDate = new Date()
-    const givenDate = new Date(date)
-    const timeDifference = currentDate - new Date(givenDate);
-
+  const CalcData = (date) => {
+    const currentDate = new Date();
+    const givenDate = new Date(date);
+    const timeDifference = currentDate - givenDate;
+  
     // Convert milliseconds to seconds
     const secondsPassed = Math.floor(timeDifference / 1000);
-
+  
     // Convert milliseconds to minutes
     const minutesPassed = Math.floor(timeDifference / (1000 * 60));
-
+  
     // Convert milliseconds to hours
     const hoursPassed = Math.floor(timeDifference / (1000 * 60 * 60));
-
+  
     // Convert milliseconds to days
     const daysPassed = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-
+  
     // Calculate the difference in years
-  const yearsPassed = currentDate.getFullYear() - givenDate.getFullYear();
-  const adjustedYearsPassed = currentDate < new Date(givenDate.setFullYear(currentDate.getFullYear())) ? yearsPassed - 1 : yearsPassed;
-    if(adjustedYearsPassed > 1){
-      return adjustedYearsPassed +'y'
+    const yearsPassed = currentDate.getFullYear() - givenDate.getFullYear();
+    const fullYearGivenDate = new Date(givenDate);
+    fullYearGivenDate.setFullYear(currentDate.getFullYear());
+    const adjustedYearsPassed = currentDate < fullYearGivenDate ? yearsPassed - 1 : yearsPassed;
+  
+    if (adjustedYearsPassed > 0) {
+      return adjustedYearsPassed + 'y';
+    } else if (daysPassed > 0) {
+      return daysPassed + 'd';
+    } else if (hoursPassed > 0) {
+      return hoursPassed + 'h';
+    } else if (minutesPassed > 0) {
+      return minutesPassed + 'm';
+    } else {
+      return secondsPassed + 's';
     }
-    else if(daysPassed > 1)
-    {
-      return daysPassed+'d'
-    }
-    else if(hoursPassed > 1)
-    {
-      return hoursPassed+'h'
-    }
-    else if(minutesPassed > 1){
-      return minutesPassed+'m'
-    }
-    else{
-      return secondsPassed+'s'
+  };
+
+  const FetchAddComment = async() => {
+    try {
+      const response = await fetch('http://localhost:3001/addComment', {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user._id,
+          postId: post._id,
+          content: CommentInputRef.current.value
+        })
+      });
+
+      const data = await response.json();
+      if (data !== 'error') {
+        // Assuming the server returns the updated post object with the new comment
+       console.log(data)
+       setPosts(prev => prev.map((_post) => {
+        if(_post._id === data._id) return data
+        return _post
+      }
+      ))
+       CommentInputRef.current.value =''
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
     }
   }
+  const EnterHandle = (e) => {
+    if(e.nativeEvent.key === 'Enter'){
+      FetchAddComment()
+      
+    }
+  }
+
+  const handleReaction =(e) =>{
+    CommentInputRef.current.value += e.emoji
+  }
   return (
+    <>
+    {post && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowAllComments} display={showAllComments} post={post} setPosts={setPosts} user={user}/>, document.body)}
+
     <Post>
       <PostTopLayout>
         <PostTopLayoutContainer>
@@ -468,7 +583,7 @@ const PostComponents = ({ post, isLike }) => {
             <ProfileImage user={post.author} size={30} outlineSize={35} />
           </PostTopLayoutImage>
 
-          <PostTopLayoutName>{post.username}</PostTopLayoutName>
+          <PostTopLayoutName href={`/${post.username}`}>{post.username}</PostTopLayoutName>
           <PostTopLayoutDotDay />
           <PostTopLayoutDay>{CalcData(post.createdAt)}</PostTopLayoutDay>
         </PostTopLayoutContainer>
@@ -484,9 +599,9 @@ const PostComponents = ({ post, isLike }) => {
             <PostVideo
               ref={videoRef}
               preload="auto"
+              autoPlay={true}
               loop
-              width="320"
-              height="240"
+              muted
               onClick={(e) => handleClickVideo(e, PauseRef)}
               $isVisible={videoVisible}
              
@@ -573,11 +688,29 @@ const PostComponents = ({ post, isLike }) => {
             <TextComponent text={post.content} />
           </DescOfPost>
         </NameAndDescContainer>
-        <Commentss>view all {post.comments} comments</Commentss>
-        <AddComments type="text" placeholder="Add a commentss" />
+        <Commentss onClick={() => handleShowAllComments()}>view all {post.commentsCount} comments</Commentss>
+        <AllCommentsPreview>
+         {post.comments.length >= 2 && 
+              post.comments.slice(0, 2).map((comment, index) => (
+                <ContainerPreviewAdd key={index} post={comment}/>
+              ))
+            }
+        </AllCommentsPreview>
+        <EmojiInputContainer>
+        <AddComments onFocus={() => setOpenEmoji(false)} ref={CommentInputRef} onKeyDown={EnterHandle} type="text" placeholder="Add a commentss" />
+        <SmileComments>
+              <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
+            </svg>
+            <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
+          </SmileComments>
+        </EmojiInputContainer>
+      
       </BottomContainer>
       <Line />
     </Post>
+
+    </>
+    
   );
 };
 

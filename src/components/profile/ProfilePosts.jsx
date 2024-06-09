@@ -1,7 +1,4 @@
-import { useRef } from "react";
-import VideoThumbnail from "react-video-thumbnail";
 import styled from "styled-components"
-
 
 const PostsHighlightContainer = styled.div`
     cursor: pointer;
@@ -78,13 +75,13 @@ const PostContainerVideo = styled.div`
 `;
 
 
-const ProfilePosts = ({post}) => {
+const ProfilePosts = ({post,handleShowPost}) => {
     const isVideo = (post.post_imgs[0].type.split('/')[0] === 'video')
-
   return (
     <>
     {isVideo ? 
-            <PostContainerVideo height={"100%"}>
+    
+            <PostContainerVideo height={"100%"} onClick={() => handleShowPost(post)}>
                 <PostContainerVideoObject preload="auto">
                     <Source src={post.post_imgs[0].data} height={"100%"}/>
                 </PostContainerVideoObject>
@@ -102,12 +99,12 @@ const ProfilePosts = ({post}) => {
                     
 
     : 
-    <PostContainer $image ={post.post_imgs[0].data}>
+    <PostContainer $image ={post.post_imgs[0].data} onClick={() => handleShowPost(post)}>
                 <PostsHighlightContainer>
                     <PostsHighlight/>
                     <PostInfoContainer>
                         <LikesShow className='mif-heart '>{post.likesCount}</LikesShow>
-                        <CommentShow className="mif-comment">{post.comments}</CommentShow>
+                        <CommentShow className="mif-comment">{post.commentsCount}</CommentShow>
                     </PostInfoContainer>
                     
                 </PostsHighlightContainer>

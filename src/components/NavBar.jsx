@@ -1,13 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components"
 import { selectCurrentUser } from "../store/user/user.selector";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AddPostModel from "./addPost/addPostModel";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { setCurrentUser } from "../store/user/user.action";
 const NavBarPage = styled.div`
     left: 0;
-    z-index: 999;
+    z-index: 100;
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -56,6 +57,7 @@ const BottomButtonContainer = styled.div`
     align-items: end;
     width: 244px;
     padding: 12px;
+    position: relative;
 `;
 const MoreInfoButon = styled.div`
     width: 100%;
@@ -72,13 +74,98 @@ const MoreInfoButon = styled.div`
     }
 `;
 
+const MoreContainer = styled.div`
+    position: absolute;
+    height: 300px;
+    width: 100px;
+    background-color: var(--gray);
+    top: -165px;
+    width: 200px;
+    border-radius: 12px;
+    display: ${({ $active }) => ($active ? 'flex' : 'none')};
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 6px;
+    overflow: hidden;
+`;
+
+const LogOut = styled.p`
+    cursor: pointer;
+    width: 100%;
+    border-radius: 8px;
+    padding: 8px 4px 6px 16px;
+    &:hover{
+        background-color: gray;
+    }
+`
+
+const LogToGigs = styled.div`
+    width: 100vw;
+    height: 80px;
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    background-color: var(--gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+`;
+
+const GigsTextLoginContainer = styled.div`
+    display: flex;
+    gap: 10px;
+    font-size: .8em;
+    font-weight: 700;
+`;
+
+const GigsTextContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+const GigsTextLogin = styled.p``;
+
+const GigsLogoLogin = styled.h1``;
+
+const GigsLoginButtonContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: 20px;
+    justify-content: center;
+    align-items: center;
+
+`;
+
+const GigsLoginButton = styled.button`
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    width: 80px;
+    background-color: var(--primary-button);
+    cursor: pointer;
+    &:hover{
+        background-color: var(--primary-button-hover);
+    }
+    
+`;
+const GigsSignUpButton = styled.a`
+font-size: .8em;
+cursor: pointer;
+color: var(--primary-button);
+&:hover{
+    color: var(--link);
+}
+
+`;
 
 const NavBar = () => {
     const [showCreate,setShowCreate] = useState(false);
     const navigate = useNavigate()
     const location = useLocation();
     const user = useSelector(selectCurrentUser)
-
+    const dispatch = useDispatch();
+    const [morePanel,setMorePanel] = useState(false)
     useEffect(() => {
         window.scrollTo(0, 0);
       }, []);
@@ -101,7 +188,9 @@ const NavBar = () => {
     })
     }
   return (
+ 
     <NavBarPage>
+    {user ? <>
         {showCreate && <AddPostModel OnClickCreate={OnClickCreate}/>        }
         <NavBarContainer>
             <NavBarTitle>Gigs</NavBarTitle>
@@ -115,8 +204,28 @@ const NavBar = () => {
             <NavBarComponents onClick={() => {ClickNavigate(`/${user.username}`)}}><Icons className="mif-account_circle mif-2x"/>Profile</NavBarComponents>
         </NavBarContainer>
         <BottomButtonContainer>
-            <MoreInfoButon><Icons className="mif-lines mif-3x"/>More</MoreInfoButon>
+            <MoreContainer $active={morePanel}>
+                <LogOut onClick={() => dispatch(setCurrentUser(null),navigate('/'))}>Log Out</LogOut>
+
+            </MoreContainer>
+            <MoreInfoButon onClick={() => { setMorePanel((prev) =>!prev)}}><Icons className="mif-lines mif-3x"/>More</MoreInfoButon>
         </BottomButtonContainer>
+        </> :
+        <LogToGigs>
+            <GigsTextLoginContainer>
+                <GigsLogoLogin>Gigs Picks</GigsLogoLogin>
+                <GigsTextContainer>
+                    <GigsTextLogin>Log into GigsPicks</GigsTextLogin>
+                    <GigsTextLogin>Log in to see photos and videos from friends and discover other accounts you'll love.</GigsTextLogin>
+                </GigsTextContainer>
+            </GigsTextLoginContainer>
+            <GigsLoginButtonContainer>
+                    <GigsLoginButton onClick={() => {navigate('/accounts/login')}}>Log in</GigsLoginButton>
+                    <GigsSignUpButton href='/accounts/signup'>Sign Up</GigsSignUpButton>
+                </GigsLoginButtonContainer>
+        </LogToGigs>
+        }
+       
         
     </NavBarPage>
   )

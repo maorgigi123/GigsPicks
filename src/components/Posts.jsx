@@ -31,12 +31,14 @@ const Loader = styled.div`
 const Posts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState([]);
- const postsID = []
+  const [postsID, setPostsID] = useState([]);
+
   const user = useSelector(selectCurrentUser);
   const navigate = useNavigate();
   const LoaderRef = useRef(null);
 
   const fetchPosts = async () => {
+    console.log('fetch')
     setIsLoading(true);
     try {
       const response = await fetch('http://localhost:3001/findPosts', {
@@ -47,28 +49,29 @@ const Posts = () => {
           seenPosts: postsID
         })
       });
-
+  
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-
+  
       const data = await response.json();
-
       // Filter out duplicate posts
       const uniquePosts = data.filter(post => !postsID.includes(post._id));
       setPosts(prevPosts => [...prevPosts, ...uniquePosts]);
+      setPostsID(prevIDs => [...prevIDs, ...uniquePosts.map(post => post._id)]);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching posts:', error);
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     if (!user) {
       navigate('/');
     } else {
-      fetchPosts();
+      console.log('hello there')
+      if(!isLoading)
+        fetchPosts();
     }
   }, []);
 
@@ -77,19 +80,15 @@ const Posts = () => {
   
     // Extract new post IDs from the fetched data
     const newPostsIDs = posts.map(post => post._id);
-    
     // Filter out duplicates from new post IDs
     const uniqueNewPostsIDs = newPostsIDs.filter(id => !postsID.includes(id));
-
-    if(uniqueNewPostsIDs.length === 0 ) return;
-    postsID.push(...uniqueNewPostsIDs)
-    // Update postsID state with unique IDs
-    // setPostsID(prevIDs => [...prevIDs, ...uniqueNewPostsIDs]);
+    if (uniqueNewPostsIDs.length === 0) return;
+    setPostsID(prevIDs => [...prevIDs, ...uniqueNewPostsIDs]);
   }, [posts]);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (Math.ceil((window.innerHeight + window.scrollY)) >= document.body.offsetHeight && !isLoading) {
+      if (Math.ceil((window.innerHeight + window.scrollY)) >= document.body.offsetHeight && !isLoading && posts.length>0) {
         fetchPosts();
       }
     };
@@ -103,7 +102,7 @@ const Posts = () => {
   return (
     <PostsContainer>
       {posts.map(data => (
-        <PostComponents key={data._id} post={data} isLike={data.likes.some(like => like._id === user._id)} />
+        <PostComponents key={data._id} setPosts ={setPosts}post={data} isLike={data.likes.some(like => like._id === user._id)} />
       ))}
       <Loader $isLoading={isLoading} ref={LoaderRef}/>
     </PostsContainer>

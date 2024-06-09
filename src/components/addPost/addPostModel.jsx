@@ -128,8 +128,9 @@ const ModelImageContainar = styled.div`
   /* transform: translate(-100%); */
   `;
   const ModelImage = styled.img`
-  background-size: contain;
-  width: 100%;
+  object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
+  display: block;       /* Removes any default inline spacing */
+    width: 100%;
   height:100%;
 `;
 const ModelCotnainerVideo = styled.div`
@@ -141,7 +142,8 @@ const ModelCotnainerVideo = styled.div`
  
 `;
  const ModelVideo = styled.video`
- object-fit: fill;
+   object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
+   display: block;       /* Removes any default inline spacing */
  width: 100%;
  height: 100%;
 `;
@@ -438,6 +440,7 @@ const RemoveTag = (tag) => {
     setError('');
     setEditImage(true)
     handleUpload(e.target.files)
+    
   }
 
   const handleUpload = async (fille) => {
@@ -450,18 +453,17 @@ const RemoveTag = (tag) => {
     const fileArray = [];
     for (let i = 0; i < files.length; i++) {
       const reader = new FileReader();
-      
       reader.onload = () => {
+        console.log(files[i])
         const fileData = {
           name: files[i].name,
           type: files[i].type,
           size: files[i].size,
-          data: reader.result // Remove data:image/jpeg;base64,
+          data: reader.result 
         };
           setPreviewImage((prev) => [...prev,reader.result])
           setCroppedArea((prev) => [...prev, []])
          
-       
         if(fileData.type.split('/')[0] === 'video')
             setIgnoreIndex((prev) => [...prev, i])
         fileArray.push(fileData);
@@ -471,23 +473,6 @@ const RemoveTag = (tag) => {
       };
       reader.readAsDataURL(files[i]);
     }
-
-    // const images = files.map(file => {
-    //   const reader = new FileReader();
-    //   reader.readAsDataURL(file);
-
-    //   reader.onload = () => {
-    //     const maxFileSize = 50 * 1024 * 1024; // 50MB in bytes
-
-    //     const folder = user.username;
-    //     const imageData = reader.result.split(',')[1]; // Extract base64 data (remove the data:image/png;base64,)
-    //     if(file.size > maxFileSize) {
-    //       return setError('File size exceeds the limit of 50MB.')
-    //     }
-    //   };
-    //   return file;
-    // });
-
    
   };
  
@@ -714,7 +699,7 @@ const RemoveTag = (tag) => {
             </DragText>
 
             <SelectImages>
-                <Input type="file" name='images' accept="image/*,video/*" multiple onClick={() => setError('')} onChange={HandleImage}/>
+                <Input type="file" name='images' accept="image/*,video/mp4" multiple onClick={() => setError('')} onChange={HandleImage}/>
                 Select from computer
             </SelectImages>
 
