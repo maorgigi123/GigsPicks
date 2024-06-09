@@ -19,7 +19,7 @@ const ModalBackground = styled.div`
   align-items: center;
 `;
 const ModalContainer = styled.div`
-  width: 600px;
+  width: 800px;
   height: 90%;
   border-radius: 12px;
   background-color: #323436;
@@ -454,7 +454,6 @@ const RemoveTag = (tag) => {
     for (let i = 0; i < files.length; i++) {
       const reader = new FileReader();
       reader.onload = () => {
-        console.log(files[i])
         const fileData = {
           name: files[i].name,
           type: files[i].type,

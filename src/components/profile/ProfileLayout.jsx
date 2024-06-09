@@ -563,7 +563,7 @@ const ProfileLayout = () => {
       
                   </NoPostsYetContainer> 
                   
-                  : allPosts.map((post) => <ProfilePosts key={post._id} handleShowPost={handleShowPost} post={post} />)}
+                  :allPosts.map((post) => <ProfilePosts key={post._id} handleShowPost={handleShowPost} post={post} />)}
                   
                 </PostsContainer>
 

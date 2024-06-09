@@ -297,13 +297,14 @@ const EmojiInputContainer = styled.div`
   margin-top: 10px;
 `;
 
-const ContainerPreviewAdd = ({post}) => {
+const ContainerPreviewAdd = ({post,like,handleAddLikeComment,user}) => {
+  const LikeRef = useRef()
     return <ContainerCommentsPrevire>
         <CommentsPreviewLeft>
         <CommentsPreviewName>{post.user_id.username}</CommentsPreviewName>
         <CommentPreviewContant>{post.content}</CommentPreviewContant>
         </CommentsPreviewLeft>
-        <IconHeart className="mif-heart"/>
+        <IconHeart onClick={() => handleAddLikeComment(post,LikeRef)} $like={like}  ref={LikeRef} className="mif-heart"/>
     </ContainerCommentsPrevire>
 }
 
@@ -316,7 +317,7 @@ const handleClickVideo = (e, PauseRef) => {
     e.target.pause();
   }
 };
-const PostComponents = ({ post, isLike,setPosts }) => {
+const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   const [index, setIndex] = useState(0);
   const [like, setLike] = useState(false);
   const [imageVisible, setImageVisible] = useState(true);
@@ -390,7 +391,6 @@ const PostComponents = ({ post, isLike,setPosts }) => {
 
   const ChangeImage = (countDown, images) => {
     if (!index) setIndex(0);
-
     setIndex((curIndex) => {
       let count = curIndex += countDown;
       if (count < 0) {
@@ -434,6 +434,7 @@ const PostComponents = ({ post, isLike,setPosts }) => {
   }
 
   useEffect(() => {
+    if(showAllComments) return
     setLike(isLike);
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -497,7 +498,7 @@ const PostComponents = ({ post, isLike,setPosts }) => {
         imageObserver.unobserve(ImageRef.current);
       }
     };
-  }, []);
+  }, [showAllComments]);
 
   const CalcData = (date) => {
     const currentDate = new Date();
@@ -534,6 +535,38 @@ const PostComponents = ({ post, isLike,setPosts }) => {
       return secondsPassed + 's';
     }
   };
+  async function handleAddLikeComment(comment,LikeRef) {
+    const fetchAddLike = await fetch('http://localhost:3001/addLikeToComment',{
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        commentId: comment._id,
+        userId: user._id,
+        postId:post._id
+      })
+    })
+
+    const data = await fetchAddLike.json()
+    if(data.remove){
+        setPosts(prev => prev.map((_post) => {
+        if(_post._id === data.remove._id) return data.remove
+        return _post
+      }
+      ))
+    }
+
+    if(data.add){
+        setPosts(prev => prev.map((_post) => {
+        if(_post._id === data.add._id) return data.add
+        return _post
+      }
+      ))
+      }
+
+      
+
+  }
+
 
   const FetchAddComment = async() => {
     try {
@@ -574,7 +607,7 @@ const PostComponents = ({ post, isLike,setPosts }) => {
   }
   return (
     <>
-    {post && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowAllComments} display={showAllComments} post={post} setPosts={setPosts} user={user}/>, document.body)}
+    {post &&posts && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowAllComments} display={showAllComments} post={post} setPosts={setPosts} user={user}/>, document.body)}
 
     <Post>
       <PostTopLayout>
@@ -690,9 +723,14 @@ const PostComponents = ({ post, isLike,setPosts }) => {
         </NameAndDescContainer>
         <Commentss onClick={() => handleShowAllComments()}>view all {post.commentsCount} comments</Commentss>
         <AllCommentsPreview>
-         {post.comments.length >= 2 && 
+         {post && (post.comments.length >= 1  && post.comments.length <= 2)&& 
+              post.comments.slice(0, post.comments.length).map((comment, index) => (
+                <ContainerPreviewAdd key={index} post={comment} handleAddLikeComment={handleAddLikeComment} like={comment.likes.some(like => like._id === user._id)}/>
+              ))
+            }
+              {post && post.comments.length > 2 && 
               post.comments.slice(0, 2).map((comment, index) => (
-                <ContainerPreviewAdd key={index} post={comment}/>
+                <ContainerPreviewAdd key={index} post={comment} handleAddLikeComment={handleAddLikeComment}like={comment.likes.some(like => like._id === user._id)}/>
               ))
             }
         </AllCommentsPreview>

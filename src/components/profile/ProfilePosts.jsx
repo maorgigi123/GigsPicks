@@ -80,7 +80,6 @@ const ProfilePosts = ({post,handleShowPost}) => {
   return (
     <>
     {isVideo ? 
-    
             <PostContainerVideo height={"100%"} onClick={() => handleShowPost(post)}>
                 <PostContainerVideoObject preload="auto">
                     <Source src={post.post_imgs[0].data} height={"100%"}/>
@@ -90,7 +89,7 @@ const ProfilePosts = ({post,handleShowPost}) => {
                     <PostsHighlight/>
                     <PostInfoContainer>
                         <LikesShow className='mif-heart '>{post.likesCount}</LikesShow>
-                        <CommentShow className="mif-comment">{post.comments}</CommentShow>
+                        <CommentShow className="mif-comment">{post.commentsCount}</CommentShow>
                     </PostInfoContainer>
                     
                 </PostsHighlightContainer>

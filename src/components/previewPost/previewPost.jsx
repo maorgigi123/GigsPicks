@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components"
 import EmojiPicker from 'emoji-picker-react';
 import { Theme } from 'emoji-picker-react';
-
+import TextComponent from "../../utils/TextComponent";
+import { CalcData } from "../../utils/CalcDate";
 const PreviewPostContainer = styled.div`
 position: fixed;
     width: 100vw;
@@ -74,11 +75,34 @@ const CommentsContainer= styled.div`
 const CommentsHeader = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
 
     margin: 12px 12px 0px 12px;
     
 `;
+
+const CommentsAllContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+const DataComment = styled.p`
+    font-size:.8em;
+    margin: 12px 12px 0px 12px;
+`;
+const BottomContainerComment = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+`;
+
+const TranslateSpan = styled.span`
+   font-size:.8em;
+    margin: 12px 12px 0px 0px;
+    cursor: pointer;
+    font-weight: bold;
+`;
+
 const CommentsHeaderAuthor = styled.div`
     display: flex;
     align-items: start;
@@ -95,7 +119,7 @@ const AuthorName = styled.p`
     font-size: .8em;
     cursor: pointer;
 `;
-const AuthorContent = styled.p`
+const AuthorContent = styled.div`
  font-weight: bold;
     font-size: .8em;
     overflow: hidden;
@@ -109,20 +133,24 @@ const LineHeader = styled.hr`
 
 
 const PostImageContainer = styled.div`
-    background-color: black;
     width: 100vw;
     min-width: 450px;
     height: 100%;
-    overflow: hidden;
     position: relative;
+    display: flex;
+    overflow: hidden;
 `;
 
 const PostImag= styled.img`
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+   width: 100%;
+  height: 100%;
+  transition: opacity 0.5s ease;
+  flex-shrink: 0;
+  flex-grow: 0;
+  transition: translate 300ms ease-in-out;
+  object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
+  display: block;       /* Removes any default inline spacing */
 `;
-
 
 const PostVideo = styled.video`
   width: 100%;
@@ -143,7 +171,26 @@ const PauseButton = styled.div`
   display: none;
   opacity: 0.6;
 `;
+const VolumeContainer = styled.div`
+  height: 30px;
+  width: 30px;
+  background-color: var(--gray);
+  opacity: 0.8;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 2px;
+  right: 4px;
+`;
 
+const VolumIcon = styled.div`
+  display: none;
+`;
+const MuteIcon = styled.div`
+  display: block;
+`;
 
 
 const AllCommentsContainer = styled.div`
@@ -153,7 +200,7 @@ const AllCommentsContainer = styled.div`
     overflow-y: scroll;
     gap: 10px;
     width: 100%;
-    height:75%;
+    height:${({$user}) => $user ? '80' :'85'}%;
 `;
 
 
@@ -215,7 +262,11 @@ cursor: pointer;
       color: var(--primary-button-hover);
     }
 `;
-const DotContainer = styled.div``;
+const DotContainer = styled.div`
+
+    cursor: pointer;
+    color:${({$like}) => $like ? 'red' : 'white'};
+`;
 
 const NoCommentsContainer = styled.div`
   width: 100%;
@@ -229,28 +280,181 @@ const NoCommentsText = styled.h2`
 font-size: 1.5em;
 `;
 
+
+const AllImagesSlider = styled.div`
+  position: absolute;
+  z-index: 2;
+  bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 5px;
+  overflow-x: scroll;
+`;
+
+const ImageSlide = styled.div`
+  position: relative;
+  cursor: pointer;
+  height: 10px;
+  width: 10px;
+  z-index: 1;
+  background-color: ${({$selected}) => ($selected === true) ? 'blue' : 'lightgray'};
+  border-radius: 50%;
+  &:hover{
+    border-radius: 30%;
+    opacity:.8;
+  }
+`;
+
+const LeftButton = styled.div`
+  cursor: pointer;
+  top: 50%;
+  height: 30px;
+  margin-left: 10px;
+  width: 30px;
+  background-color: lightgray;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+  &::before {
+    content: "<";
+    font-weight: bold;
+  }
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const RightButton = styled.div`
+  cursor: pointer;
+  margin-right: 10px;
+  top: 50%;
+  right: 0;
+  height: 30px;
+  width: 30px;
+  background-color: lightgray;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: lightgray;
+  opacity: 0.5;
+  &::before {
+    content: ">";
+    font-weight: bold;
+  }
+  &:hover {
+    opacity: 1;
+  }
+`;
+
 // Function to render comment header
-const CommentHeaderComponent = ({ post }) => (
-  <CommentsHeader>
-    <CommentsHeaderAuthor>
-      <AuthorIcon src={post.user_id.profile_img} alt="Author Icon" /> 
-      <AuthorName>{post.user_id.username}</AuthorName>
-      <AuthorContent>{post.content}</AuthorContent>
-    </CommentsHeaderAuthor>
-    <DotContainer className="mif-heart" />
-  </CommentsHeader>
-);
+function CommentHeaderComponent({ post,user,handleAddLike }) {
+  const likesCount = post.likesCount;
+  return (
+    <CommentsAllContainer>
+    <CommentsHeader>
+   <CommentsHeaderAuthor>
+     <AuthorIcon src={post.user_id.profile_img} alt="Author Icon" /> 
+     <AuthorName>{post.user_id.username}</AuthorName>
+     <AuthorContent>
+           {" "}
+           <TextComponent text={post.content} />
+         </AuthorContent>
+   </CommentsHeaderAuthor>
+   <DotContainer onClick={() =>handleAddLike(post,post.user_id)} $like={post.likes.some(like => like._id === user._id)} className="mif-heart" />
+ </CommentsHeader>
+
+     <BottomContainerComment>
+             <DataComment>{CalcData(post.createdAt)}</DataComment>
+             {likesCount >= 0 &&  <TranslateSpan >{likesCount} {likesCount > 1 ? 'likes' : 'like'}</TranslateSpan>}
+             <TranslateSpan>Reply</TranslateSpan>
+             <TranslateSpan>See translation</TranslateSpan>
+       </BottomContainerComment>
+ </CommentsAllContainer>
+  );
+
+}
 
 const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
   const [commentHeaders, setCommentHeaders] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [volume,setVolume] = useState(false)
   const [openEmoji,setOpenEmoji] = useState(false)
   const containerRef = useRef(null);
   const PauseRef = useRef();
   const CommentValue = useRef();
   const AllCommentsRef = useRef();
+  const videoRef = useRef()
+  const VolumeIconRef = useRef();
+  const MuteIconRef = useRef();
+  const Volume_Container = useRef();
+  const ImageRef = useRef();
 
   const Post = post.current ? post.current : post;
 
+  async function handleAddLike(comment,user,likeRef,setLikesCount) {
+    const fetchAddLike = await fetch('http://localhost:3001/addLikeToComment',{
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        commentId: comment._id,
+        userId: user._id,
+        postId:  Post._id
+      })
+    })
+
+    const data = await fetchAddLike.json()
+    if(data.remove){
+      // likeRef.current.style.color='white'
+        setPosts(prev => prev.map((_post) => {
+            if(_post._id === data.remove._id) return data.remove
+            return _post
+          }
+      ))
+    }
+
+    if(data.add){
+        // likeRef.current.style.color='red'
+        setPosts(prev => prev.map((_post) => {
+        if(_post._id === data.add._id) return data.add
+            return _post
+          }
+      ))
+      }
+  }
+
+  useEffect(()=>{
+    const allVideos = document.querySelectorAll('video');
+
+    // Now you can iterate over allVideos NodeList to access each video element
+
+    allVideos.forEach(video => {
+      if(!videoRef.current) return
+      if(display == false)
+      {
+        if(videoRef.current && videoRef.current === video)
+          video.pause()
+      }
+      else{
+        if(videoRef.current && videoRef.current !== video)
+          video.pause()
+        else
+        {
+          PauseRef.current.style.display = "none";
+          video.play()
+        }
+         
+      }
+      // Do something with each video element
+    
+  });
+  },[display])
   useEffect(() => {
     if (display) {
       const handleKeyDown = (event) => {
@@ -275,19 +479,20 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
+
+  
+
   }, [display]);
 
   useEffect(() => {
     // Initialize with existing comments when the post or display changes
     if (display && Post.comments.length > 0) {
-      console
       const initialComments = Post.comments.map((comment) => (
-        <CommentHeaderComponent key={comment._id} post={comment} content={comment.content}/>
+        <CommentHeaderComponent key={comment._id} post={comment} user={user} handleAddLike={handleAddLike}/>
       ));
       setCommentHeaders(initialComments);
     }
   }, [display, Post.comments]);
-
   const handleClickVideo = (e, PauseRef) => {
     if (e.target.paused) {
       PauseRef.current.style.display = "none";
@@ -298,8 +503,52 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
     }
   };
 
+  const ChangeImage = (countDown, images) => {
+    if (!index) setIndex(0);
+    setIndex((curIndex) => {
+      let count = curIndex += countDown;
+      if (count < 0) {
+        count = images.length - 1;
+      }
+      if (count > images.length - 1) {
+        count = 0;
+      }
+      if (Post.post_imgs[count].type.toString().startsWith('video')) {
+        if(Volume_Container.current)
+            Volume_Container.current.style.display = 'flex';
+        // Apply logic for video
+        } else {
+          if(PauseRef.current && Volume_Container.current) 
+            {
+              PauseRef.current.style.display='none';
+              Volume_Container.current.style.display = 'none';
+            }
+           
+        }
+      if (ImageRef.current) ImageRef.current.src = images[count].data;
+      return count;
+    });
+  };
+
+  const MoveToImage = (_idx) =>{
+    setIndex(_idx)
+    if (Post.post_imgs[_idx].type.toString().startsWith('video')) {
+      if(Volume_Container.current)
+          Volume_Container.current.style.display = 'flex';
+      // Apply logic for video
+      } else {
+        if(PauseRef.current && Volume_Container.current) 
+          {
+            PauseRef.current.style.display='none';
+            Volume_Container.current.style.display = 'none';
+          }
+         
+      }
+
+  }
+
   const addNewComment = (commentPost) => {
-    const newCommentHeader = <CommentHeaderComponent key={commentHeaders.length} post={commentPost} content={CommentValue.current.value} />;
+    const newCommentHeader = <CommentHeaderComponent key={commentHeaders.length} post={commentPost} user={user} handleAddLike={handleAddLike} />;
     setCommentHeaders(prevCommentHeaders => [...prevCommentHeaders, newCommentHeader]);
   };
 
@@ -348,6 +597,22 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
     CommentValue.current.value += e.emoji
   }
 
+  const handleVolume = (e) => {
+    if (!MuteIconRef.current || !VolumeIconRef.current) return;
+    setVolume((prev) => {
+      if (prev === true) {
+        MuteIconRef.current.style.display = "block";
+        videoRef.current.muted = true;
+        VolumeIconRef.current.style.display = "none";
+      } else {
+        MuteIconRef.current.style.display = "none";
+        videoRef.current.muted = false;
+        VolumeIconRef.current.style.display = "block";
+      }
+
+      return !prev;
+    });
+  };
   return (
     <PreviewPostContainer $display={display} ref={containerRef}>
       <Backgeound></Backgeound>
@@ -355,25 +620,79 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
         <CloseButton onClick={handleShowPost}>X</CloseButton>
       </CloseButtonContainer>
       <ContainerPost>
+
         <PostImageContainer>
-          {postType === 'image' ? (
-            <PostImag src={postImageOrVideo.data} />
-          ) : (
-            <>
-              <PostVideo
-                preload="auto"
-                autoPlay
-                loop
-                muted
-                onClick={(e) => handleClickVideo(e, PauseRef)}
-              >
-                <source src={postImageOrVideo.data} type={post.type} />
-                Your browser does not support the video tag.
-              </PostVideo>
-              <PauseButton ref={PauseRef}></PauseButton>
-            </>
-          )}
-        </PostImageContainer>
+                        {Post.post_imgs.map((post_img, idx) => (
+                          <React.Fragment key={idx}>
+                            {post_img.type.split("/")[0] === "video" ? (
+                              <>
+                                <PostVideo
+                                  ref={videoRef}
+                                  preload="auto"
+                                  autoPlay={true}
+                                  loop
+                                  muted
+                                  onClick={(e) => handleClickVideo(e, PauseRef)}
+                                
+                                  style={{translate:`${-100 * index}%`, height:`100%`}}
+                                >
+                                  <source
+                                    src={post_img.data}
+                                    type={post_img.type}
+                                  />
+                                  Your browser does not support the video tag.
+                                </PostVideo>
+                                <PauseButton ref={PauseRef}></PauseButton>
+                                <VolumeContainer ref={Volume_Container} onClick={(e) => handleVolume(e)} style={{display:idx ===0 ? 'flex' : 'none'}}>
+                                        <VolumIcon
+                                            ref={VolumeIconRef}
+                                            className="mif-volume-high"
+                                        ></VolumIcon>
+                                        <MuteIcon
+                                            ref={MuteIconRef}
+                                            className="mif-volume-mute2"
+                                        ></MuteIcon>
+                                </VolumeContainer>
+                                
+                              </>
+                            ) : (
+                              <PostImag
+                                loading="lazy"
+                                src={post_img.data}
+                                alt="post image"
+                                style={{translate:`${-100 * index}%`}}
+                              />
+                            )}
+                          </React.Fragment>
+                        ))}
+
+                        {Post.post_imgs.length > 1 &&<AllImagesSlider>
+                              { Post.post_imgs.map((img,_idx) =>{
+                                let selected = false;
+                                if(_idx === index)
+                                  {
+                                    selected= true
+                                  }
+                                  return <ImageSlide key={_idx} $selected={selected} onClick={() =>{MoveToImage(_idx)}}> </ImageSlide>
+                                })}
+                        </AllImagesSlider>
+                        }
+                        {Post.post_imgs.length > 1 && index > 0 &&(
+                          <LeftButton
+                            onClick={() => {
+                              ChangeImage(-1, Post.post_imgs);
+                            }}
+                          />
+                        )}
+                        {Post.post_imgs.length > 1 && (index < Post.post_imgs.length - 1) && (
+                          <RightButton
+                            onClick={() => {
+                              ChangeImage(1, Post.post_imgs);
+                            }}
+                          />
+                        )}
+  </PostImageContainer>
+  
         <CommentsContainer>
           <CommentsHeader>
             <CommentsHeaderAuthor>
@@ -383,7 +702,26 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
             <IconHeart className="mif-more-horiz mif-2x" />
           </CommentsHeader>
           <LineHeader />
-          <AllCommentsContainer ref={AllCommentsRef}>
+          <AllCommentsContainer ref={AllCommentsRef} $user={user}>
+            <CommentsAllContainer>
+                <CommentsHeader>
+                <CommentsHeaderAuthor>
+                  <AuthorIcon src={Post.author.profile_img} alt="Author Icon" /> 
+                  <AuthorName>{Post.author.username}</AuthorName>
+                  <AuthorContent>
+                        {" "}
+                        <TextComponent text={Post.content} />
+                      </AuthorContent>
+                  
+                </CommentsHeaderAuthor>
+              </CommentsHeader>
+              <BottomContainerComment>
+              <DataComment>{CalcData(Post.createdAt)}</DataComment>
+              <TranslateSpan>See translation</TranslateSpan>
+              </BottomContainerComment>
+              
+            </CommentsAllContainer>
+         
             {commentHeaders.length === 0 ? (
               <NoCommentsContainer>
                 <NoCommentsText>No comments yet...</NoCommentsText>
@@ -403,20 +741,23 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
           </IconsBottonPost>
           <PostDat>{GetDate(Post.createdAt)}</PostDat>
           <LineHeader />
-          <AddCommentsContainer>
-            <CommentContainer>
-              <SmileComments>
-              <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
-            </svg>
-            <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
-              </SmileComments>
-         
+          {user && 
+           <AddCommentsContainer>
+           <CommentContainer>
+             <SmileComments>
+             <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
+           </svg>
+           <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
+             </SmileComments>
+        
 
-            
-            <Comment onFocus={() => {setOpenEmoji((prev) => false)}} placeholder="Add a comment..." ref={CommentValue} />
-            </CommentContainer>
-            <PotComments onClick={handlePostComment}>Post</PotComments>
-          </AddCommentsContainer>
+           
+           <Comment onFocus={() => {setOpenEmoji((prev) => false)}} placeholder="Add a comment..." ref={CommentValue} />
+           </CommentContainer>
+           <PotComments onClick={handlePostComment}>Post</PotComments>
+         </AddCommentsContainer>
+         }
+         
         </CommentsContainer>
       </ContainerPost>
     </PreviewPostContainer>

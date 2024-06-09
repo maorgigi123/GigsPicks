@@ -79,7 +79,7 @@ const MoreContainer = styled.div`
     height: 300px;
     width: 100px;
     background-color: var(--gray);
-    top: -165px;
+    top: 20px;
     width: 200px;
     border-radius: 12px;
     display: ${({ $active }) => ($active ? 'flex' : 'none')};

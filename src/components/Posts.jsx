@@ -38,7 +38,6 @@ const Posts = () => {
   const LoaderRef = useRef(null);
 
   const fetchPosts = async () => {
-    console.log('fetch')
     setIsLoading(true);
     try {
       const response = await fetch('http://localhost:3001/findPosts', {
@@ -69,7 +68,6 @@ const Posts = () => {
     if (!user) {
       navigate('/');
     } else {
-      console.log('hello there')
       if(!isLoading)
         fetchPosts();
     }
@@ -102,7 +100,7 @@ const Posts = () => {
   return (
     <PostsContainer>
       {posts.map(data => (
-        <PostComponents key={data._id} setPosts ={setPosts}post={data} isLike={data.likes.some(like => like._id === user._id)} />
+        <PostComponents key={data._id} setPosts ={setPosts} post={data} posts={posts} isLike={data.likes.some(like => like._id === user._id)} />
       ))}
       <Loader $isLoading={isLoading} ref={LoaderRef}/>
     </PostsContainer>
