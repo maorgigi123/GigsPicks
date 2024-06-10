@@ -85,7 +85,7 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for more details on our code 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Contact
-Your Name - [protoflio](https://gigscoder.com/) - gigigamescompany@gmail.com
+maor gigi - [protoflio](https://gigscoder.com/) - gigigamescompany@gmail.com
 
 Feel free to reach out if you have any questions or need further assistance.
 
