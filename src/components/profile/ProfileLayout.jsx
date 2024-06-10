@@ -370,7 +370,7 @@ const ProfileLayout = () => {
     setShowPreview((prev) => {
       if(prev === true){
         document.body.classList.remove('active-modal')
-        post.current = null;
+        // post.current = null;
         return false;
     }else{
         document.body.classList.add('active-modal')
@@ -389,7 +389,7 @@ const ProfileLayout = () => {
       const fetchUser = await fetch('http://localhost:3001/getUserByUsername', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({ username,seen:postsID.current.length })
       });
 
       const data = await fetchUser.json();
@@ -399,7 +399,12 @@ const ProfileLayout = () => {
       } else {
         const user = data[0];
         const posts = data[1];
-        postsID.current.push(...posts.map(post => post._id));
+
+        const unseenPosts = posts.filter(post => !postsID.current.includes(post._id));
+        setPosts((prev) => [...prev, ...unseenPosts]);
+        postsID.current.push(...unseenPosts.map(post => post._id));
+
+        // postsID.current.push(...posts.map(post => post._id));
         setUser(user);
         setPosts(posts);
 
@@ -412,6 +417,7 @@ const ProfileLayout = () => {
   };
 
   const fetchMorePosts = async () => {
+    if(showPreview) return
     if(postsID.current.length <= 0) return
     setLoadPosts(true);
     try {
@@ -429,7 +435,6 @@ const ProfileLayout = () => {
         const unseenPosts = data.filter(post => !postsID.current.includes(post._id));
         setPosts((prev) => [...prev, ...unseenPosts]);
         postsID.current.push(...unseenPosts.map(post => post._id));
-
       }
       setLoadPosts(false);
     } catch (error) {
@@ -443,6 +448,7 @@ const ProfileLayout = () => {
   };
   
   useEffect(() => {
+    if(showPreview) return
     setLoad(true);
     if (_user && username === _user.username) {
       setIsAdmin(true);
@@ -454,9 +460,12 @@ const ProfileLayout = () => {
   }, [username]);
 
   useEffect(() => {
+    if(showPreview) return
     fetchData(username);
-  },[post.current])
+  },[post.current,showPreview])
   useEffect(() => {
+    if(showPreview) return
+
     const handleScroll = () => {
       if (Math.ceil(window.innerHeight + window.scrollY) >= document.body.offsetHeight && !loadPosts && postsID.current.length>0) {
         fetchMorePosts();
@@ -482,7 +491,8 @@ const ProfileLayout = () => {
 
   return (
     <div>
-      {post.current && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowPost} display={showPreview} post={post} user={_user}/>, document.body)}
+      {showPreview && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowPost} display={showPreview} post={post} user={_user} islike={post.current.likes.some(like => like._id === _user._id)}/>, document.body)}
+
       {load && 
         <LoadContainer>
           <IconLoad></IconLoad>
@@ -494,7 +504,7 @@ const ProfileLayout = () => {
           <p>The link you followed may be broken, or the page may have been removed.<Link href='/'> Go back to Gigs. </Link></p>
         </PageNotAvalibleContainer>
       }
-      {!load && user &&     
+      {!load && user &&   
         <ProfileContainer>
           {/* --------------------- Start Info Profile ---------------------  */}
           <ProfileInfoContainer>

@@ -8,6 +8,7 @@ import ImageCropper from "./ImageCropper";
 import { nanoid } from "nanoid";
 import { generateVideoThumbnails } from "@rajesh896/video-thumbnails-generator";
 import { handleClickVideo } from "../../utils/Helper";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 const ModalBackground = styled.div`
   width: 100vw;
   height: 100vh;
@@ -19,7 +20,7 @@ const ModalBackground = styled.div`
   align-items: center;
 `;
 const ModalContainer = styled.div`
-  width: 800px;
+   width: 1000px;
   height: 90%;
   border-radius: 12px;
   background-color: #323436;
@@ -105,7 +106,7 @@ const Error = styled.p`
 
 // ----------------------------------- Upload Post Staart
 const ModalContainerPost = styled.div`
-  width: 900px;
+  width: 1000px;
   height: 90%;
   border-radius: 12px;
   background-color: #323436;
@@ -128,6 +129,7 @@ const ModelImageContainar = styled.div`
   /* transform: translate(-100%); */
   `;
   const ModelImage = styled.img`
+  background-color:transparent;
   object-fit: contain;  /* Adjusts the image to maintain aspect ratio and fit within the container */
   display: block;       /* Removes any default inline spacing */
     width: 100%;
@@ -288,7 +290,7 @@ const RightButton = styled.div`
 
 // ---------------Edit Image
 const ModalContainerEditPost = styled.div`
-  width: 900px;
+  width: 1000px;
   height: 90%;
   border-radius: 12px;
   background-color: #323436;
@@ -334,8 +336,24 @@ const TagClose = styled.div`
   margin-right: -10px;
 `;
 
-
-
+const CounterWordsContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+const CounterWords = styled.p`
+  margin-right: 10px;
+`;
+const SmileComments = styled.div`
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+`;
+const EmojiPickerButton = styled(EmojiPicker)`
+  top: -480px;
+  left: -345px;
+`;
 
 const AddPostModel = ({OnClickCreate}) => {
 
@@ -344,6 +362,7 @@ const AddPostModel = ({OnClickCreate}) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [index,setIndex] = useState(0)
   const [editImage, setEditImage] = useState(true);
+  const [openEmoji,setOpenEmoji] = useState(false)
 
   const [croppedArea, setCroppedArea] = useState([null]);
 
@@ -359,6 +378,8 @@ const AddPostModel = ({OnClickCreate}) => {
   const user = useSelector(selectCurrentUser);
 
   const [tags, setTags] = useState([]);
+
+  const [countText,setCountText] = useState(0)
 
   const onAddTag = (tag) => {
     console.log(tag)
@@ -385,10 +406,10 @@ const RemoveTag = (tag) => {
       if ( tagsRef.current.value.length < 2 ){
         return setError('Tag should be at least 2 characters')
       }
-      if ( tagsRef.current.value.trim() !== '') {
+      if ( tagsRef.current.value.replace(/[^\w\d]/g, '') !== '') {
         setError('')
-        onAddTag(tagsRef.current.value.trim());
-        setTags([...tags, tagsRef.current.value]);
+        onAddTag(tagsRef.current.value.replace(/[^\w\d]/g, ''));
+        setTags([...tags, tagsRef.current.value.replace(/[^\w\d]/g, '')]);
         tagsRef.current.value=''
         
       }
@@ -480,6 +501,13 @@ const RemoveTag = (tag) => {
     setError('')
     let contents = content.current.value;
 
+    const textarea = content.current;
+
+    // Calculate number of lines
+    const lines = textarea.scrollHeight / textarea.clientHeight;
+    console.log(lines)
+    if(lines > 4.5 || contents.length >1000) return setError('Unable to post comment. Comments must not exceed 45 rows or 1000 characters.')
+
     if(contents.length <= 0){
       return setError('Cant upload empty posts')
     }
@@ -508,6 +536,16 @@ const RemoveTag = (tag) => {
       }
     
   }
+  const handleContentChange = (e) =>{
+    console.log('change')
+    setCountText([...e.nativeEvent.target.value].length);
+
+  }
+
+  const handleReaction = (e) => {
+    content.current.value+=e.emoji;
+    setCountText(prevCount => prevCount + 1);
+  }
 
   const onCropDone = (getIndex) => {
     const canvasEle = document.createElement('canvas')
@@ -530,7 +568,7 @@ const RemoveTag = (tag) => {
         croppedArea[getIndex].width ,
         croppedArea[getIndex].height 
       );
-      const dataUrl = canvasEle.toDataURL('image/jpeg');
+      const dataUrl = canvasEle.toDataURL(previewImage[getIndex].type);
       setSelectedFiles((prev) => {
         const updateFiles = [...prev];
         updateFiles[getIndex] = {...updateFiles[getIndex], data:dataUrl};
@@ -652,7 +690,6 @@ const RemoveTag = (tag) => {
                     Your browser does not support the video tag.
                 </ModelVideo>
               </ModelCotnainerVideo> :  <ModelImage ref={ImageRef} src={imgAfterCrop} alt={`Preview image`} />}
-           
             {previewImage.length > 1 && <LeftButton onClick={() => {ChangeImage(-1)}}/>}
              {previewImage.length > 1 && <RightButton onClick={() => {ChangeImage(1)}}/>}
                
@@ -664,14 +701,22 @@ const RemoveTag = (tag) => {
                         <TopSharePostInfoUsername>{user.username}</TopSharePostInfoUsername>
                       </TopSharePostInfoUserContainer>
                       <SharePostContantWriteContainer>
-                          <SharePostContantWrite ref={content} type="text" cols="40" rows="10"placeholder="Write a caption..." >
+                          <SharePostContantWrite onChange={handleContentChange} ref={content} type="text" cols="40" rows="10"placeholder="Write a caption..." >
                           </SharePostContantWrite>
                       </SharePostContantWriteContainer>
+                      <CounterWordsContainer> 
+                      <SmileComments>
+                              <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
+                            </svg>
+                            <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
+                        </SmileComments>
+                        <CounterWords>{countText}/1000</CounterWords>
+                      </CounterWordsContainer>
+                     
                       <InputTagsContainer>
                             <InputTagsText>Tags:</InputTagsText>
                             <InputTags ref={tagsRef} placeholder="example (food,games)" onKeyPress={handleKeyPress}/>
                       </InputTagsContainer>
-
                       <TagList>
                               {tags.map((tag, index) => (
                                  <Tag key={index}><TagClose className="mif-highlight_remove" onClick={()=>RemoveTag(index)}/> {tag}</Tag>

@@ -1,4 +1,4 @@
-export const CalcData = (date) => {
+export const CalcData = (date,add=false) => {
     const currentDate = new Date();
     const givenDate = new Date(date);
     const timeDifference = currentDate - givenDate;
@@ -20,20 +20,26 @@ export const CalcData = (date) => {
     const fullYearGivenDate = new Date(givenDate);
     fullYearGivenDate.setFullYear(currentDate.getFullYear());
     const adjustedYearsPassed = currentDate < fullYearGivenDate ? yearsPassed - 1 : yearsPassed;
-  
+
     if (adjustedYearsPassed > 0) {
-      return adjustedYearsPassed + 'y';
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return givenDate.toLocaleDateString('en-US', options);
     } else if (daysPassed > 0) {
-      return daysPassed + 'd';
+      if(daysPassed > 7)
+      {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return givenDate.toLocaleDateString('en-US', options);
+      }
+      return daysPassed + (add ? ' days ago' :'d');
     } else if (hoursPassed > 0) {
-      return hoursPassed + 'h';
+      return hoursPassed + (add ? ' hours ago' :'h');
     } else if (minutesPassed > 0) {
-      return minutesPassed + 'm';
+      return minutesPassed + (add ? ' minutes ago' :'m');
     } else {
         if(secondsPassed <= 1)
         {
             return 'now';
         }
-      return secondsPassed + 's';
+      return secondsPassed +(add ? ' seconds ago' :'s');
     }
   };

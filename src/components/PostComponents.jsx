@@ -7,6 +7,7 @@ import { selectCurrentUser } from "../store/user/user.selector";
 import PreviewPost from "./previewPost/previewPost";
 import ReactDOM from 'react-dom';
 import EmojiPicker, { Theme } from "emoji-picker-react";
+import ReadMore from "./ReadMore";
 
 
 const Post = styled.div`
@@ -297,12 +298,16 @@ const EmojiInputContainer = styled.div`
   margin-top: 10px;
 `;
 
-const ContainerPreviewAdd = ({post,like,handleAddLikeComment,user}) => {
+const ContainerPreviewAdd = ({post,like,handleAddLikeComment}) => {
   const LikeRef = useRef()
     return <ContainerCommentsPrevire>
         <CommentsPreviewLeft>
         <CommentsPreviewName>{post.user_id.username}</CommentsPreviewName>
-        <CommentPreviewContant>{post.content}</CommentPreviewContant>
+
+        <div>
+        <ReadMore text={post.content}></ReadMore>
+        </div>
+        
         </CommentsPreviewLeft>
         <IconHeart onClick={() => handleAddLikeComment(post,LikeRef)} $like={like}  ref={LikeRef} className="mif-heart"/>
     </ContainerCommentsPrevire>
@@ -319,7 +324,7 @@ const handleClickVideo = (e, PauseRef) => {
 };
 const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   const [index, setIndex] = useState(0);
-  const [like, setLike] = useState(false);
+  const [like, setLike] = useState(isLike);
   const [imageVisible, setImageVisible] = useState(true);
   const [videoVisible, setVideoVisible] = useState(false);
   const [volume,setVolume] = useState(false)
@@ -327,6 +332,8 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   const [openEmoji,setOpenEmoji] = useState(false)
   const ImageRef = useRef();
   const PauseRef = useRef();
+  const hearthRef = useRef();
+  const likesCountRef = useRef()
   const CommentInputRef = useRef()
   const VolumeIconRef = useRef();
   const MuteIconRef = useRef();
@@ -348,7 +355,6 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   }
 
   const addLike = (post) => {
-    console.log(user._id, post._id);
     fetch("http://localhost:3001/addLike", {
       method: "post",
       headers: { "content-Type": "application/json" },
@@ -361,13 +367,24 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
       .then((data) => {
         if (data === "error") {
           console.log("error when liked a post");
-        } else if (data === "you liked this post already") {
-          // console.log('you liked this post already')
         } else {
           //setLike([...like, post]) set all likes
-          post.likesCount += 1;
-          setLike(true);
+          // post.likesCount += 1;
+          // setLike(true);
           // console.log('add like')
+          if(data.removeLike)
+            {
+              post.likesCount = data.removeLike.likesCount;
+              setLike(false);
+              hearthRef.current.style.color ='white'
+            }
+            else if(data.addLike)
+              {
+                post.likesCount = data.addLike.likesCount;
+                setLike(true);
+                hearthRef.current.style.color ='red'
+              }
+         
         }
       });
   };
@@ -436,6 +453,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   useEffect(() => {
     if(showAllComments) return
     setLike(isLike);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Update state based on intersection status
@@ -535,7 +553,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
       return secondsPassed + 's';
     }
   };
-  async function handleAddLikeComment(comment,LikeRef) {
+  async function handleAddLikeComment(comment) {
     const fetchAddLike = await fetch('http://localhost:3001/addLikeToComment',{
       method:"POST",
       headers:{'Content-Type':'application/json'},
@@ -562,9 +580,6 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
       }
       ))
       }
-
-      
-
   }
 
 
@@ -597,7 +612,8 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   }
   const EnterHandle = (e) => {
     if(e.nativeEvent.key === 'Enter'){
-      FetchAddComment()
+      if(CommentInputRef.current.value.length > 0)
+          FetchAddComment()
       
     }
   }
@@ -607,7 +623,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   }
   return (
     <>
-    {post &&posts && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowAllComments} display={showAllComments} post={post} setPosts={setPosts} user={user}/>, document.body)}
+    {post &&posts && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowAllComments} display={showAllComments} post={post} setPosts={setPosts} user={user} islike={like} hearthRefFromHome={hearthRef}/>, document.body)}
 
     <Post>
       <PostTopLayout>
@@ -705,20 +721,21 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
           <IconHeart
             className="mif-heart mif-2x"
             $like={like}
+            ref={hearthRef}
             onClick={() => addLike(post)}
           />
-          <Icon className="mif-comment mif-2x" />
+          <Icon onClick={() => handleShowAllComments()} className="mif-comment mif-2x" />
           <Icon className="mif-send mif-2x" />
         </IconsLeftContainer>
         <Icon className="mif-bookmark mif-2x" />
       </IconsBottonPost>
       <BottomContainer>
-        <LikesPost>{post.likesCount} likes</LikesPost>
+        <LikesPost>{post.likesCount === 0 ? 'Be the first to like this': (post.likesCount +' '+ (post.likesCount > 1 ? 'likes' : 'like'))}</LikesPost>
         <NameAndDescContainer>
           <NameOfOuter>{post.username}</NameOfOuter>
           <DescOfPost>
             {" "}
-            <TextComponent text={post.content} />
+            <ReadMore text={post.content}></ReadMore>
           </DescOfPost>
         </NameAndDescContainer>
         <Commentss onClick={() => handleShowAllComments()}>view all {post.commentsCount} comments</Commentss>

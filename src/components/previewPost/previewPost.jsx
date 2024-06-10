@@ -4,15 +4,18 @@ import EmojiPicker from 'emoji-picker-react';
 import { Theme } from 'emoji-picker-react';
 import TextComponent from "../../utils/TextComponent";
 import { CalcData } from "../../utils/CalcDate";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../store/user/user.selector";
+import ReadMore from "../ReadMore";
 const PreviewPostContainer = styled.div`
-position: fixed;
-    width: 100vw;
-    height: 100vh;
-    z-index: 100;
-top: 0;
-left:0;
-    display: ${({ $display }) => ($display ? 'block' : 'none')};
-
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  overflow-y: auto; /* Add overflow-y: auto to enable scrolling if content exceeds viewport */
+  display: ${({ $display }) => ($display ? 'block' : 'none')};
 `;
 const Backgeound = styled.div`
 position: absolute;
@@ -122,9 +125,10 @@ const AuthorName = styled.p`
 const AuthorContent = styled.div`
  font-weight: bold;
     font-size: .8em;
-    overflow: hidden;
-  word-break: break-all;
+    /* overflow: hidden;
+  word-break: break-all; */
   min-height: 20px;
+  
 
 `;
 const LineHeader = styled.hr`
@@ -133,8 +137,8 @@ const LineHeader = styled.hr`
 
 
 const PostImageContainer = styled.div`
-    width: 100vw;
-    min-width: 450px;
+    min-width: 715px;
+    max-width: 100vw;
     height: 100%;
     position: relative;
     display: flex;
@@ -142,7 +146,7 @@ const PostImageContainer = styled.div`
 `;
 
 const PostImag= styled.img`
-   width: 100%;
+  width: 100%;
   height: 100%;
   transition: opacity 0.5s ease;
   flex-shrink: 0;
@@ -200,7 +204,7 @@ const AllCommentsContainer = styled.div`
     overflow-y: scroll;
     gap: 10px;
     width: 100%;
-    height:${({$user}) => $user ? '80' :'85'}%;
+    height:${({$user}) => $user ? '85':'90'}%;
 `;
 
 
@@ -215,7 +219,7 @@ const Icon = styled.div`
 `;
 const IconHeart = styled.div`
   cursor: pointer;
-  /* ${(props) => (props.$like ? "color:red" : "")} */
+  ${(props) => (props.$like ? "color:red" : "")}
 `;
 
 const IconsLeftContainer = styled.div`
@@ -223,7 +227,7 @@ const IconsLeftContainer = styled.div`
   gap: 15px;
 `;
 const PostDat = styled.p`
-    font-size:.8em;
+    font-size:.9em;
     margin: 12px 12px 0px 12px;
 `;
 
@@ -355,7 +359,8 @@ const RightButton = styled.div`
 
 // Function to render comment header
 function CommentHeaderComponent({ post,user,handleAddLike }) {
-  const likesCount = post.likesCount;
+  const likeHearthRef = useRef()
+  const [commentLikesCount,setCommentLikeCount] = useState(post.likesCount)
   return (
     <CommentsAllContainer>
     <CommentsHeader>
@@ -364,15 +369,15 @@ function CommentHeaderComponent({ post,user,handleAddLike }) {
      <AuthorName>{post.user_id.username}</AuthorName>
      <AuthorContent>
            {" "}
-           <TextComponent text={post.content} />
+           <ReadMore text={post.content}> </ReadMore>
          </AuthorContent>
    </CommentsHeaderAuthor>
-   <DotContainer onClick={() =>handleAddLike(post,post.user_id)} $like={post.likes.some(like => like._id === user._id)} className="mif-heart" />
+   <DotContainer onClick={() =>handleAddLike(post,likeHearthRef,setCommentLikeCount)} $like={user && post.likes.some(like => like._id === user._id)}  ref={likeHearthRef} className="mif-heart" />
  </CommentsHeader>
 
      <BottomContainerComment>
              <DataComment>{CalcData(post.createdAt)}</DataComment>
-             {likesCount >= 0 &&  <TranslateSpan >{likesCount} {likesCount > 1 ? 'likes' : 'like'}</TranslateSpan>}
+             {commentLikesCount > 0 &&  <TranslateSpan >{commentLikesCount} {commentLikesCount > 1 ? 'likes' : 'like'}</TranslateSpan>}
              <TranslateSpan>Reply</TranslateSpan>
              <TranslateSpan>See translation</TranslateSpan>
        </BottomContainerComment>
@@ -381,10 +386,11 @@ function CommentHeaderComponent({ post,user,handleAddLike }) {
 
 }
 
-const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
+const PreviewPost = ({ display, handleShowPost, post,setPosts, user, islike,hearthRefFromHome }) => {
   const [commentHeaders, setCommentHeaders] = useState([]);
   const [index, setIndex] = useState(0);
   const [volume,setVolume] = useState(false)
+  const [like, setLike] = useState(islike)
   const [openEmoji,setOpenEmoji] = useState(false)
   const containerRef = useRef(null);
   const PauseRef = useRef();
@@ -398,7 +404,47 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
 
   const Post = post.current ? post.current : post;
 
-  async function handleAddLike(comment,user,likeRef,setLikesCount) {
+  useEffect(() => {
+    setLike(islike)
+  },[islike])
+  
+  const addLike = () => {
+    fetch("http://localhost:3001/addLike", {
+      method: "post",
+      headers: { "content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user._id,
+        postId: Post._id,
+      }),
+    })
+      .then((data) => data.json())
+      .then((data) => {
+        if (data === "error") {
+          console.log("error when liked a post");
+        } else {
+          //setLike([...like, post]) set all likes
+          // post.likesCount += 1;
+          // setLike(true);
+          // console.log('add like')
+          if(data.removeLike)
+            {
+              post.likesCount = data.removeLike.likesCount;
+              setLike(false);
+              hearthRefFromHome && (hearthRefFromHome.current.style.color ='white')
+            }
+            else if(data.addLike)
+              {
+                post.likesCount = data.addLike.likesCount;
+                setLike(true);
+                hearthRefFromHome && (hearthRefFromHome.current.style.color ='red')
+              }
+         
+        }
+      });
+  };
+
+  async function handleAddLike(comment,likeHearthRef,setCommentLikeCount) {
+    if(!user) return alert('cant like need first to login')
     const fetchAddLike = await fetch('http://localhost:3001/addLikeToComment',{
       method:"POST",
       headers:{'Content-Type':'application/json'},
@@ -411,8 +457,14 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
 
     const data = await fetchAddLike.json()
     if(data.remove){
-      // likeRef.current.style.color='white'
-        setPosts(prev => prev.map((_post) => {
+      setCommentLikeCount((prev) => prev-=1)
+
+      if(!setPosts)
+        {
+          if(likeHearthRef.current)
+            likeHearthRef.current.style.color = 'white'
+        }
+        setPosts && setPosts(prev => prev.map((_post) => {
             if(_post._id === data.remove._id) return data.remove
             return _post
           }
@@ -420,8 +472,13 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
     }
 
     if(data.add){
-        // likeRef.current.style.color='red'
-        setPosts(prev => prev.map((_post) => {
+      setCommentLikeCount((prev) => prev+=1)
+      if(!setPosts)
+        {
+          if(likeHearthRef.current)
+            likeHearthRef.current.style.color = 'red'
+        }
+        setPosts && setPosts(prev => prev.map((_post) => {
         if(_post._id === data.add._id) return data.add
             return _post
           }
@@ -547,13 +604,21 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
 
   }
 
+
   const addNewComment = (commentPost) => {
     const newCommentHeader = <CommentHeaderComponent key={commentHeaders.length} post={commentPost} user={user} handleAddLike={handleAddLike} />;
-    setCommentHeaders(prevCommentHeaders => [...prevCommentHeaders, newCommentHeader]);
+    setCommentHeaders(prevCommentHeaders => [newCommentHeader,...prevCommentHeaders]);
   };
 
   const handlePostComment = async () => {
-    const value = CommentValue.current.value;
+
+    let value = CommentValue.current.value;
+
+    const textarea = CommentValue.current;
+
+    // Calculate number of lines
+    const lines = textarea.scrollHeight / textarea.clientHeight;
+    if(lines > 30) return console.log('Cannot post an comment with 30 rows')
     if (value.length <= 0) return console.log('Cannot post an empty message');
 
     try {
@@ -576,7 +641,7 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
           return _post
         }
         ))
-        addNewComment(data.comments[data.commentsCount-1]);
+        !setPosts && addNewComment(data.comments[0]);
         CommentValue.current.value =''
       }
     } catch (error) {
@@ -587,11 +652,7 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
   const postImageOrVideo = Post.post_imgs[0];
   const postType = postImageOrVideo.type.split('/')[0];
 
-  const GetDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
-  };
+
 
   const handleReaction = (e) => {
     CommentValue.current.value += e.emoji
@@ -694,7 +755,7 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
   </PostImageContainer>
   
         <CommentsContainer>
-          <CommentsHeader>
+            <CommentsHeader>
             <CommentsHeaderAuthor>
               <AuthorIcon src={Post.author.profile_img} alt="Author Icon" />
               <AuthorName>{Post.username}</AuthorName>
@@ -702,6 +763,8 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
             <IconHeart className="mif-more-horiz mif-2x" />
           </CommentsHeader>
           <LineHeader />
+         
+          
           <AllCommentsContainer ref={AllCommentsRef} $user={user}>
             <CommentsAllContainer>
                 <CommentsHeader>
@@ -709,9 +772,8 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
                   <AuthorIcon src={Post.author.profile_img} alt="Author Icon" /> 
                   <AuthorName>{Post.author.username}</AuthorName>
                   <AuthorContent>
-                        {" "}
-                        <TextComponent text={Post.content} />
-                      </AuthorContent>
+                        <ReadMore text={Post.content}></ReadMore>
+                  </AuthorContent>
                   
                 </CommentsHeaderAuthor>
               </CommentsHeader>
@@ -733,13 +795,14 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user }) => {
           <LineHeader />
           <IconsBottonPost>
             <IconsLeftContainer>
-              <IconHeart className="mif-heart mif-1x" />
-              <Icon className="mif-comment mif-1x" />
-              <Icon className="mif-send mif-1x" />
+              <IconHeart onClick={addLike} $like={like} className="mif-heart mif-2x" />
+              <Icon className="mif-comment mif-2x" />
+              <Icon className="mif-send mif-2x" />
             </IconsLeftContainer>
-            <Icon className="mif-bookmark mif-1x" />
+            <Icon className="mif-bookmark mif-2x" />
           </IconsBottonPost>
-          <PostDat>{GetDate(Post.createdAt)}</PostDat>
+          <PostDat>{Post.likesCount === 0 ? 'Be the first to like this': (Post.likesCount +' '+ (Post.likesCount > 1 ? 'likes' : 'like'))}</PostDat>
+          <PostDat>{CalcData(Post.createdAt,true)}</PostDat>
           <LineHeader />
           {user && 
            <AddCommentsContainer>

@@ -37,7 +37,7 @@ const PostContainer = styled.div`
     width: 100%;
     background-size: cover;
     position: relative;
-    background-color: white;
+    background-color: transparent;
     &:hover ${PostsHighlight} {
         animation: show .4s forwards;
     }
@@ -99,6 +99,7 @@ const ProfilePosts = ({post,handleShowPost}) => {
 
     : 
     <PostContainer $image ={post.post_imgs[0].data} onClick={() => handleShowPost(post)}>
+                
                 <PostsHighlightContainer>
                     <PostsHighlight/>
                     <PostInfoContainer>
