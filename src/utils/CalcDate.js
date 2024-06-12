@@ -43,3 +43,18 @@ export const CalcData = (date,add=false) => {
       return secondsPassed +(add ? ' seconds ago' :'s');
     }
   };
+
+  // Function to format the date
+export function formatTimestamp(timestamp) {
+  // Create a Date object from the timestamp
+  const date = new Date(timestamp);
+  
+  // Get the day of the week, e.g., "Tue"
+  const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+  
+  // Get the time in the format "6:31 PM"
+  const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }).format(date);
+  
+  // Combine and return the formatted string
+  return `${dayOfWeek} ${time}`;
+}

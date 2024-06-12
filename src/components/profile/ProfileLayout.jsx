@@ -522,7 +522,7 @@ const ProfileLayout = () => {
                   </> : 
                   <>
                     <FollowButton />
-                    <SendMessageButton />
+                    <SendMessageButton onClick={() => navigate('/direct/'+user.username,{ state: ({username: user.username,profile_img: user.profile_img,_id:user._id}) })}/>
                     <DotContainer>
                       <Dot /> <Dot /> <Dot />
                     </DotContainer>

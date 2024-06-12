@@ -6,6 +6,7 @@ import AddPostModel from "./addPost/addPostModel";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { setCurrentUser } from "../store/user/user.action";
+import { selectCurrentWs } from "../store/webSocket/ws.selector";
 const NavBarPage = styled.div`
     left: 0;
     z-index: 100;
@@ -166,6 +167,7 @@ const NavBar = () => {
     const user = useSelector(selectCurrentUser)
     const dispatch = useDispatch();
     const [morePanel,setMorePanel] = useState(false)
+    const ws = useSelector(selectCurrentWs);
     useEffect(() => {
         window.scrollTo(0, 0);
       }, []);
@@ -198,14 +200,14 @@ const NavBar = () => {
             <NavBarComponents><Icons className="mif-search mif-2x"/> Search</NavBarComponents>
             <NavBarComponents><Icons className="mif-compass2 mif-2x"/>Explore</NavBarComponents>
             <NavBarComponents><Icons className="mif-video-camera mif-2x"/>Reels</NavBarComponents>
-            <NavBarComponents><Icons className="mif-qa mif-2x"/>Messages</NavBarComponents>
+            <NavBarComponents onClick={() => {ClickNavigate(`/direct`)}}><Icons className="mif-qa mif-2x"/>Messages</NavBarComponents>
             <NavBarComponents><Icons className="mif-notifications mif-2x"/>Notifications</NavBarComponents>
             <NavBarComponents onClick={OnClickCreate}><Icons className="mif-plus mif-2x"/>Create</NavBarComponents>
             <NavBarComponents onClick={() => {ClickNavigate(`/${user.username}`)}}><Icons className="mif-account_circle mif-2x"/>Profile</NavBarComponents>
         </NavBarContainer>
         <BottomButtonContainer>
             <MoreContainer $active={morePanel}>
-                <LogOut onClick={() => dispatch(setCurrentUser(null),navigate('/'))}>Log Out</LogOut>
+                <LogOut onClick={() => dispatch(setCurrentUser(null),navigate('/'),ws.currentWs.send(JSON.stringify({ type: 'disconnect', username: `${user.username}` })))}>Log Out</LogOut>
 
             </MoreContainer>
             <MoreInfoButon onClick={() => { setMorePanel((prev) =>!prev)}}><Icons className="mif-lines mif-3x"/>More</MoreInfoButon>

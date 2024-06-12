@@ -1,11 +1,82 @@
-import { Routes,Route, Navigate } from "react-router-dom";
+import { Routes,Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import User from './pages/User'
 import Profile from "./pages/Profile"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
 import { selectCurrentUser } from "./store/user/user.selector"
-import { useSelector } from "react-redux"
 import Edit from "./pages/Edit"
+import Direct from "./pages/Direct";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import { selectCurrentWs } from "./store/webSocket/ws.selector";
+import { setCurrentWs } from "./store/webSocket/ws.action";
+import { setAddMessage } from "./store/user/user.action";
+
+const LoaderContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const Loader = styled.div`
+  display: block;
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid var(--gray);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin .8s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorContainer = styled.h2`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    width: 100%;
+    min-height: 100vh;
+`;
+
+const NewMessageContainer = styled.div`
+  height: 100px;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  z-index: 100;
+`;
+const NewMessage = styled.div`
+  height: 80px;
+  width: 400px;
+  border-radius: 12px;
+  margin-top: 20px;
+  background-color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  overflow: hidden;
+`;
+const ProfileImg = styled.img`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+`;
+const NewMessageProfileInfoContainer = styled.div``;
+const ProfileName = styled.h3``;
+const ProfileMessage = styled.p`
+  color: #837e7e;
+  width: 100%;
+`;
 function App() {
 
   const users = [
@@ -108,10 +179,104 @@ comments: [{
 }
 ]
   const user = useSelector(selectCurrentUser)
+  const dispatch = useDispatch();
+  const [load,setLoad] = useState(false);
+  const [error,setError] = useState('')
+  const ws = useRef(null);
+  const wsConnect = useSelector(selectCurrentWs);
+  let timeOut = useRef(null);
+  const [newMessage,setNewMessage] = useState()
+  const location = useLocation();
+  const navigate = useNavigate('/')
+ 
+
+  useEffect(() => {
+    if(!user) return
+    setLoad(true)
+    // Initialize WebSocket connection
+    ws.current = new WebSocket(`ws://localhost:3001?username=${user.username}`);
+
+    // WebSocket connection opened
+    ws.current.onopen = () => {
+      dispatch(setCurrentWs(ws.current))
+      setLoad(false)
+    };
+    // WebSocket message received
+    ws.current.onmessage = (event) => {
+       const mesage = JSON.parse(event.data);
+       if(mesage.newMessage){
+        dispatch(setAddMessage(mesage.newMessage))
+        setNewMessage(mesage.newMessage)
+       }
+    };
+
+    // WebSocket connection closed
+    ws.current.onclose = () => {
+      console.log('WebSocket connection closed');
+      
+    };
+
+    // WebSocket error occurred
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setLoad(false)
+      setError('something went wrong with the connection, please try again')
+      navigate('/')
+    };
+     // Clean up function
+     return () => {
+      // Close the WebSocket connection when the component unmounts
+      ws.current.close();
+    };
+
+  }, [user]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // Send a message to the server before closing the WebSocket connection
+      if (ws.current) {
+        ws.current.send(JSON.stringify({ type: 'disconnect', username: `${user.username}` }));
+      }
+    };
+  
+    // Add an event listener for the beforeunload event
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [user]);
+
+    useEffect(() => {
+      if(!newMessage) return
+      if (timeOut.current) {
+        clearTimeout(timeOut.current);
+      }
+      timeOut.current = setTimeout(()=>{
+       
+        setNewMessage()
+      },4000)
+    },[newMessage])
+
+    const isDirectRoute = location.pathname.startsWith('/direct');
+
+
   return (
-      <Routes>
+    <>
+    {!load && error.length <=0 && 
+    <>
+      {newMessage && !isDirectRoute && <NewMessageContainer><NewMessage>
+          <ProfileImg src={newMessage.profileImg}/>
+          <NewMessageProfileInfoContainer>
+            <ProfileName>{newMessage.sender.username}</ProfileName>
+            <ProfileMessage>{newMessage.content}</ProfileMessage>
+          </NewMessageProfileInfoContainer>
+        </NewMessage></NewMessageContainer> }
+            <Routes>
             {user?<Route index element={<User users={users}/>} /> :<Route index element={<Login/>} />}
             <Route path="/:username/*" element={<Profile/>}/>
+            <Route path='direct/*' element={<Direct/>} />
             <Route path="/accounts">
               <Route index element = {<Login />} />
               <Route path="login/:source?" element={<Login />} />
@@ -119,6 +284,15 @@ comments: [{
               <Route path='edit/*' element={<Edit/>} />
             </Route>
       </Routes>
+    </>
+    
+      }
+      {error.length > 0 && <ErrorContainer>{error}</ErrorContainer>}
+    {load &&  <LoaderContainer>
+            <Loader/>
+          </LoaderContainer>}
+    
+    </>
     
   )
 }

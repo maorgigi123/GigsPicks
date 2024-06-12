@@ -8,6 +8,7 @@ import PreviewPost from "./previewPost/previewPost";
 import ReactDOM from 'react-dom';
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import ReadMore from "./ReadMore";
+import { useNavigate } from "react-router-dom";
 
 
 const Post = styled.div`
@@ -340,6 +341,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
   const Volume_Container = useRef();
   const user = useSelector(selectCurrentUser);
   const videoRef = useRef(null);
+  const navigate = useNavigate()
 
 
   const handleShowAllComments = () => {
@@ -632,7 +634,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
             <ProfileImage user={post.author} size={30} outlineSize={35} />
           </PostTopLayoutImage>
 
-          <PostTopLayoutName href={`/${post.username}`}>{post.username}</PostTopLayoutName>
+          <PostTopLayoutName onClick={() => navigate(`/${post.username}`)}>{post.username}</PostTopLayoutName>
           <PostTopLayoutDotDay />
           <PostTopLayoutDay>{CalcData(post.createdAt)}</PostTopLayoutDay>
         </PostTopLayoutContainer>
@@ -732,7 +734,7 @@ const PostComponents = ({ post, isLike,setPosts ,posts}) => {
       <BottomContainer>
         <LikesPost>{post.likesCount === 0 ? 'Be the first to like this': (post.likesCount +' '+ (post.likesCount > 1 ? 'likes' : 'like'))}</LikesPost>
         <NameAndDescContainer>
-          <NameOfOuter>{post.username}</NameOfOuter>
+          <NameOfOuter onClick={() => navigate(`/${post.username}`)}>{post.username}</NameOfOuter>
           <DescOfPost>
             {" "}
             <ReadMore text={post.content}></ReadMore>
