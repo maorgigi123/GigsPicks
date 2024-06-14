@@ -53,10 +53,18 @@ const StoriesContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 120px;
-  background-color: black;
+  @media screen and (max-width: 1023px) {
+    width: 100vw;
+    position: absolute;
+    left: 0;
+    padding: 20px;
+    }
 `;
 const StorieContainerFix = styled.div`
   width: 700px;
+  @media screen and (max-width: 1023px) {
+    width: 100%;
+    }
 `
 
 const ProfileStorysContainer =styled.div`

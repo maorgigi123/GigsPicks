@@ -13,8 +13,18 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     width: 100%;
+    min-width: 700px;
     height: 100vh;
     flex: 2;
+    @media screen and (max-width: 1300px){
+        min-width: 400px;
+        flex: 1;
+        
+    }
+    @media screen and (max-width: 1023px){
+        padding-bottom: 50px;       
+        
+    }
 `;
 const MessageUserContainer = styled.div`
     width:100%;
@@ -109,12 +119,12 @@ const EmojiPickerButton = styled(EmojiPicker)`
 
 const IconsInputMessage = styled.div`
     display:flex;
-    gap:10px;
-    margin-right:12px;
+    gap:20px;
 `;
 
 const IconsContainer = styled.div`
-    display:block;
+    display:flex;
+    gap: 10px;
 `
 const LabelSend = styled.label`
 display: none;

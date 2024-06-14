@@ -15,12 +15,20 @@ const Container = styled.div`
 `;
 const ContainerDirect = styled.div`
     height: 100vh;
-    width: 500px;
+    width: 400px;
     margin-left: 244px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     border-right: 1px solid white;
+    @media screen and (max-width: 1300px){
+        width: 100px;
+        min-width: 100px;
+        margin-left: 100px;
+    }
+    @media screen and (max-width: 1023px) {
+        margin-left: 0px;
+    }
 `;
 
 const TitleText = styled.h3`
@@ -28,6 +36,9 @@ const TitleText = styled.h3`
     margin-top: 12px;
     color: white;
     margin-left: 12px;
+    @media screen and (max-width: 1300px){
+        display: none;
+    }
 `;
 
 const LoaderContainer = styled.div`
@@ -61,7 +72,16 @@ const NoMessageText = styled.p`
     font-size: 20px;
     text-align: center;
 
-
+    @media screen and (max-width: 1300px) {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 15px;
+        margin:0;
+        padding:0;
+    }
 `;
 
 

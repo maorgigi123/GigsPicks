@@ -10,10 +10,15 @@ import ReactDOM from 'react-dom';
 
 const ProfileContainer = styled.div`
     width: 700px;
-    margin-top: 40px;
+    padding-top: 40px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    @media screen and (max-width: 1023px) {
+      width: 100%;
+      padding-right: 10px;
+      padding-left: 10px;
+    }
 `;
 
 const ProfileInfoContainer = styled.div`
@@ -24,32 +29,67 @@ const ProfileImage = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-grow: 3;
+  flex-grow: 1;
+  @media screen and (max-width: 1023px) {
+    align-items: start;
+    justify-content: start;
+    }
+  
 `;
 
 const ProfileImg = styled.img`
   width: 130px;
   height: 120px;
   border-radius: 50%;
+  @media screen and (max-width: 1023px) {
+    width: 100px;
+    height: 90px;
+    
+    }
+
 `;
 
 const InfoProfileContainer = styled.div`
   flex-grow: 1;
+  @media screen and (max-width: 1023px) {
+    flex-grow: 20;
+    }
 `;
 
 const TopRightContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  @media screen and (max-width: 1023px) {
+    flex-direction: column;
+      align-items: start;
+      justify-content: start;
+      gap: 20px;
+    }
 `;
 
 const TopRightName = styled.p`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  max-width: 100px;
+  max-width: 100%;
   font-weight: 400;
   font-size: 1.2em;
+`;
+
+const TopRightUserContainer = styled.div`
+  @media screen and (max-width: 1023px) {
+    display: flex;
+    gap:20px
+    }
+`;
+const TopRightButtonContainer = styled.div`
+  display: flex;
+  gap: 20px;
+  @media screen and (max-width: 1023px) {
+      flex-direction: row;
+      align-items: start;
+    }
 `;
 
 const TopRightEditProfile = styled.div`
@@ -98,6 +138,9 @@ const TopRightViewArchive = styled.div`
 
 const TopRightSettingButton = styled.div`
   cursor: pointer;
+  @media screen and (max-width: 1023px) {
+      display: none;
+    }
 `;
 
 const MiddleRightContainer = styled.div`
@@ -105,17 +148,49 @@ const MiddleRightContainer = styled.div`
   margin-top: 15px;
   margin-bottom: 15px;
   justify-content: space-between;
+  @media screen and (max-width: 1023px) {
+      display: none;
+    }
 `;
 
-const MiddleRightPostsCount = styled.p``;
-const MiddleRightFollowersCount = styled.p``;
-const MiddleRightFollowing = styled.p``;
+const MiddleRightContainerMobile = styled.div`
+  display: none;
+  margin-top: 25px;
+  height: 60px;
+  border-top: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+  justify-content: space-evenly;
+  align-items: center;
+  @media screen and (max-width: 1023px) {
+      display: flex;
+      margin-bottom: -22px;
+    }
+`;
+const MiddleRightPostsCount = styled.p`
+cursor: pointer;
+`;
+const MiddleRightFollowersCount = styled.p`
+  cursor: pointer;
+`;
+const MiddleRightFollowing = styled.p`
+  cursor: pointer;
+`;
 
-const BottomBioContainer = styled.div``;
+const BottomBioContainer = styled.div`
+@media screen and (max-width: 1023px) {
+      display: none;
+    }
+`;
+const BottomBioContainerMobile = styled.div`
+  display: none;
+  @media screen and (max-width: 1023px) {
+      display: block;
+    }
+`;
 const BottomBioText = styled.p``;
 
 const HighlightsContainer = styled.div`
-  width: 700px;
+  width: 100%;
   margin-top: 20px;
 `;
 
@@ -153,6 +228,9 @@ const LineBreakContainer = styled.div`
   flex-direction: column;
   gap: 20px;
   position: relative;
+  @media screen and (max-width: 1023px) {
+    margin-top: 0px;
+    }
 `;
 
 const Line = styled.div`
@@ -203,6 +281,7 @@ border: none;
 const PostsContainer = styled.div`
   width: 100%;
   position: relative;
+  overflow-x: hidden;
   overflow-y: auto; /* Changed to auto */
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -292,6 +371,17 @@ const SendMessageButton = styled.div`
     background-color: #65676B;
   }
 `;
+const DotContainerMobile = styled.div`
+  cursor: pointer;
+  width: 20px;
+  height: 30px;
+  display: none;
+  gap: 2px;
+  align-items: center;
+  @media screen and (max-width: 1023px) {
+      display: flex;
+    }
+`;
 
 const DotContainer = styled.div`
   cursor: pointer;
@@ -300,6 +390,9 @@ const DotContainer = styled.div`
   display: flex;
   gap: 2px;
   align-items: center;
+  @media screen and (max-width: 1023px) {
+      display: none;
+    }
 `;
 
 const Dot = styled.div`
@@ -333,7 +426,7 @@ const Loader = styled.div`
 `;
 
 const NoPostsYetContainer = styled.div`
-  width: 700px;
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
@@ -345,8 +438,8 @@ const NoPostsYetContainer = styled.div`
 const NoPostsYetLogo = styled.h1``;
 
 const NoPostsYetText = styled.p`
-font-size: 1.6em;
-font-weight: bold;
+  font-size: 1.6em;
+  font-weight: bold;
 `;
 
 const ProfileLayout = () => {
@@ -491,7 +584,7 @@ const ProfileLayout = () => {
 
   return (
     <div>
-      {showPreview && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowPost} display={showPreview} post={post} user={_user} islike={post.current.likes.some(like => like._id === _user._id)}/>, document.body)}
+      {showPreview && ReactDOM.createPortal(<PreviewPost handleShowPost={handleShowPost} display={showPreview} post={post} user={_user} islike={_user && post.current.likes.some(like => like._id === _user._id)}/>, document.body)}
 
       {load && 
         <LoadContainer>
@@ -513,17 +606,31 @@ const ProfileLayout = () => {
             </ProfileImage>
             <InfoProfileContainer>
               <TopRightContainer>
-                <TopRightName>{user.username}</TopRightName>
+                <TopRightUserContainer>
+                      <TopRightName>{user.username}</TopRightName>
+                      <DotContainerMobile>
+                          <Dot /> <Dot /> <Dot />
+                        </DotContainerMobile>
+                </TopRightUserContainer>
+                
                 {isAdmin ? 
                   <>
+                  <TopRightButtonContainer>
                     <TopRightEditProfile onClick={navigateToEditProfile} />
                     <TopRightViewArchive />
-                    <TopRightSettingButton className="mif-cog mif-2x" />
+                  </TopRightButtonContainer>
+                   
+                  <DotContainer>
+                      <Dot /> <Dot /> <Dot />
+                    </DotContainer>
                   </> : 
                   <>
-                    <FollowButton />
+                  <TopRightButtonContainer>
+                  <FollowButton />
                     <SendMessageButton onClick={() => navigate('/direct/'+user.username,{ state: ({username: user.username,profile_img: user.profile_img,_id:user._id}) })}/>
-                    <DotContainer>
+              
+                  </TopRightButtonContainer>
+                        <DotContainer>
                       <Dot /> <Dot /> <Dot />
                     </DotContainer>
                   </>
@@ -540,7 +647,9 @@ const ProfileLayout = () => {
             </InfoProfileContainer> 
           </ProfileInfoContainer>
           {/* --------------------- End Info Profile ---------------------  */}
-
+          <BottomBioContainerMobile>
+                <BottomBioText>{user.biography}</BottomBioText>
+            </BottomBioContainerMobile>
           {/* --------------------- Start Highlights Container ---------------------  */}
           <HighlightsContainer>
             <HighlightParent>
@@ -551,6 +660,12 @@ const ProfileLayout = () => {
             </HighlightParent>
           </HighlightsContainer>
           {/* --------------------- End Highlights Container ---------------------  */}
+
+          <MiddleRightContainerMobile>
+            <MiddleRightPostsCount>{user.posts} posts</MiddleRightPostsCount>
+                  <MiddleRightFollowersCount>{user.followers_count} followers</MiddleRightFollowersCount>
+                  <MiddleRightFollowing>{user.following_count} following</MiddleRightFollowing>
+          </MiddleRightContainerMobile>
           <LineBreakContainer>
             <Line />
             <SelectorDiv>
@@ -564,18 +679,21 @@ const ProfileLayout = () => {
           </LineBreakContainer>
           <Routes>
             <Route index element={
-                  <PostsContainer>
-                  {allPosts.length <= 0 ?
-                  
-                  <NoPostsYetContainer>
-                    <NoPostsYetLogo>GigsPicks</NoPostsYetLogo>
-                    <NoPostsYetText>No Posts Yet</NoPostsYetText>
-      
-                  </NoPostsYetContainer> 
-                  
-                  :allPosts.map((post) => <ProfilePosts key={post._id} handleShowPost={handleShowPost} post={post} />)}
-                  
+              <>
+              {
+                allPosts.length > 0 ? 
+                <PostsContainer>
+                  {allPosts.map((post) => <ProfilePosts key={post._id} handleShowPost={handleShowPost} post={post} />)}
                 </PostsContainer>
+                :
+                <NoPostsYetContainer>
+                <NoPostsYetLogo>GigsPicks</NoPostsYetLogo>
+                <NoPostsYetText>No Posts Yet</NoPostsYetText>
+  
+              </NoPostsYetContainer> 
+              }
+              </>
+                 
 
             } />
             <Route path="/saved" element={

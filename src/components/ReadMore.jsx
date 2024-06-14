@@ -14,6 +14,8 @@ const ContentContainer = styled.div`
   overflow: hidden;
   transition: max-height 0.3s ease;
   line-height: 1.6;
+  word-break: break-all;
+  
 `;
 
 function ReadMore({ text, maxRows = 5, maxCharacters = 100 }) {

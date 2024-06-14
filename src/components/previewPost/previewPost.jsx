@@ -25,6 +25,10 @@ position: absolute;
     opacity: .5;
     top: 0;
     left: 0;
+    @media screen and (max-width: 1300px) {
+      background-color: black;
+      opacity: 1;
+    }
 `;
 
 const CloseButtonContainer = styled.div`
@@ -47,7 +51,7 @@ const CloseButton = styled.button`
   color: white;
 `;
 const ContainerPost = styled.div`
-background-color: black;
+    background-color: black;
     position: absolute; 
     max-width: 80vw;
     min-width: 60vw;
@@ -60,6 +64,11 @@ background-color: black;
     transform: translate(-50%,-50%);
     opacity: 1;
     z-index: 102;
+    @media screen and (max-width: 1300px) {
+      width: 100vw;
+      min-width: 400px;
+      height: 100%;
+    }
 
 `;
 
@@ -67,10 +76,17 @@ const CommentsContainer= styled.div`
     width: 80%;
     min-width: 500px;
     height: 100%;
-    background-color: black;
     display: flex;
     flex-direction: column;
     border-left: 1px solid lightgray;
+    @media screen and (max-width: 1300px) {
+      border: none;
+      height: 90%;
+    }
+    @media screen and (max-width: 1023px) {
+      position: absolute;
+      bottom: 0;
+    }
     
 `;
 
@@ -137,12 +153,15 @@ const LineHeader = styled.hr`
 
 
 const PostImageContainer = styled.div`
-    min-width: 715px;
+    min-width: 500px;
     max-width: 100vw;
     height: 100%;
     position: relative;
     display: flex;
     overflow: hidden;
+    @media screen and (max-width: 1023px) {
+     display: none;
+    }
 `;
 
 const PostImag= styled.img`
@@ -160,6 +179,7 @@ const PostVideo = styled.video`
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transition: translate 300ms ease-in-out;
 `
 const PauseButton = styled.div`
   width: 80px;
@@ -279,6 +299,7 @@ const NoCommentsContainer = styled.div`
   justify-content: center;
   align-items: center;
   margin-top: 12px;
+  margin-bottom: 30px;
 `;
 const NoCommentsText = styled.h2`
 font-size: 1.5em;
@@ -404,11 +425,13 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user, islike,hear
 
   const Post = post.current ? post.current : post;
 
+
   useEffect(() => {
     setLike(islike)
   },[islike])
   
   const addLike = () => {
+    if(!user) return alert('cant like need first to login')
     fetch("http://localhost:3001/addLike", {
       method: "post",
       headers: { "content-Type": "application/json" },
@@ -428,13 +451,15 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user, islike,hear
           // console.log('add like')
           if(data.removeLike)
             {
-              post.likesCount = data.removeLike.likesCount;
+              Post.likesCount = data.removeLike.likesCount;
               setLike(false);
               hearthRefFromHome && (hearthRefFromHome.current.style.color ='white')
+
+      
             }
             else if(data.addLike)
               {
-                post.likesCount = data.addLike.likesCount;
+                Post.likesCount = data.addLike.likesCount;
                 setLike(true);
                 hearthRefFromHome && (hearthRefFromHome.current.style.color ='red')
               }
@@ -677,8 +702,8 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user, islike,hear
   return (
     <PreviewPostContainer $display={display} ref={containerRef}>
       <Backgeound></Backgeound>
-      <CloseButtonContainer>
-        <CloseButton onClick={handleShowPost}>X</CloseButton>
+      <CloseButtonContainer onClick={handleShowPost}>
+        <CloseButton>X</CloseButton>
       </CloseButtonContainer>
       <ContainerPost>
 
@@ -815,7 +840,7 @@ const PreviewPost = ({ display, handleShowPost, post,setPosts, user, islike,hear
         
 
            
-           <Comment onFocus={() => {setOpenEmoji((prev) => false)}} placeholder="Add a comment..." ref={CommentValue} />
+           <Comment onFocus={() => {setOpenEmoji((prev) => false)}} name='comment' placeholder="Add a comment..." ref={CommentValue} />
            </CommentContainer>
            <PotComments onClick={handlePostComment}>Post</PotComments>
          </AddCommentsContainer>

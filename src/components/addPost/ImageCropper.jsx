@@ -1,6 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import styled from "styled-components";
+import {getVideoDurationFromBase64} from "../../utils/VideoDurationFromBase64";
+import Slider from "./Slider";
+import VideoPlayer from "./VideoPlayer";
 
 const AspectRatioContainer = styled.div`
   cursor: pointer;
@@ -77,7 +80,78 @@ const AspectRatirBorder = styled.div`
   opacity: 0.7;
 `;
 
-const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle = false }) => {
+const CoverContainer = styled.div`
+  cursor: pointer;
+    margin-right: 10px;
+  left: 40px;
+  bottom: 0;
+  margin: 10px;
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #323436;
+  &:hover {
+    background-color: #232526;
+  }
+`;
+
+const ImageSvg = styled.svg`
+  transform: scale(.8);
+`
+
+const ContainerVideo = styled.div`
+  position: absolute;
+  left: 40px;
+  bottom: -15px;
+  width: 900px;
+  height: 80px;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow:hidden;
+  overflow-x: scroll;
+  @media screen and (max-width: 1023px) {
+    width: 400px;
+    }
+`;
+
+
+const LoaderContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const Loader = styled.div`
+  display: ${({ $isLoading }) => ($isLoading ? 'block' : 'none')};
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid var(--gray);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin .8s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const TypeOfPost = styled.div`
+    position: absolute;
+    top:70px;
+    padding: 8px;
+    right: 0;
+`;
+
+const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle = false, cover,duration,setCover,indexForCover }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [aspectRatio, setAspectRatio] = useState(circle ?1 / 1 : 4 / 3);
@@ -92,6 +166,54 @@ const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle =
   const OneOnOneAspectRatio = useRef();
   const FourFiveAspectRatio = useRef();
   const SixOnNineAspectRatio = useRef();
+
+  const [loadCover,setLoadCover] = useState(false)
+  const videoDuration = duration;
+  const [currentFrame, setCurrentFrame] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [sliderValue, setSliderValue] = useState(0);
+
+
+
+  //test2
+
+  const [selectedFrame, setSelectedFrame] = useState(0);
+  const [capturedFrames, setCapturedFrames] = useState([]);
+ // Callback to capture frame selection from VideoPlayer
+ const handleFrameCapture = (frameData) => {
+  setCapturedFrames((prevFrames) => [...prevFrames, frameData]);
+};
+
+
+  // Extract frame based on slider position
+  const handleSliderChange = (event) => {
+    const time = event.target.value;
+    setSliderValue(time);
+
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+    }
+  };
+
+  // Capture the current frame when the video time is updated
+  const captureFrame = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const frameData = canvas.toDataURL('image/png');
+
+
+      setCurrentFrame(frameData);
+    }
+  };
+
 
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
     const newItem = CroppedAreaState[index] = croppedAreaPixels;
@@ -169,11 +291,14 @@ const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle =
     }
   }, [image]);
 
+  const handleCoverVideo = () =>{
+    console.log('cover')
+  }
   return (
     <div>
       <Cropper
-        image={isVideo ? '' : image}
-        video={isVideo ? image : ''}
+        image={isVideo ?  capturedFrames.length ? capturedFrames[selectedFrame] : cover : image}
+        // video={isVideo ? image : ''}
         showGrid={isVideo ? false : circle ? false : true}
         aspect={aspectRatio}
         crop={isVideo ? { x: 0, y: 0 } : crop}
@@ -182,7 +307,7 @@ const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle =
         onZoomChange={isVideo ? null : setZoom}
         onCropComplete={onCropComplete}
         cropShape={circle ? 'round' : 'rect'}
-        // objectFit="fill"
+        objectFit={isVideo ? 'fill' : ''}
         style={{
           containerStyle: {
             height: "100%",
@@ -261,6 +386,72 @@ const ImageCropper = ({ image, setCroppedArea, index, CroppedAreaState, circle =
           </>
         )}
       </AspectRatioContainer>
+
+    {isVideo && 
+    <>
+      <TypeOfPost>
+      <svg aria-label="Reels" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Reels</title><line fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" x1="2.049" x2="21.95" y1="7.002" y2="7.002"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="13.504" x2="16.362" y1="2.001" y2="7.002"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="7.207" x2="10.002" y1="2.11" y2="7.002"></line><path d="M2 12.001v3.449c0 2.849.698 4.006 1.606 4.945.94.908 2.098 1.607 4.946 1.607h6.896c2.848 0 4.006-.699 4.946-1.607.908-.939 1.606-2.096 1.606-4.945V8.552c0-2.848-.698-4.006-1.606-4.945C19.454 2.699 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.546 2 5.704 2 8.552Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><path d="M9.763 17.664a.908.908 0 0 1-.454-.787V11.63a.909.909 0 0 1 1.364-.788l4.545 2.624a.909.909 0 0 1 0 1.575l-4.545 2.624a.91.91 0 0 1-.91 0Z" fillRule="evenodd"></path></svg>
+      </TypeOfPost>
+                    <CoverContainer onClick={handleCoverVideo}>
+    {/* // <video
+    //         ref={videoRef}
+    //         src={image}
+    //         style={{ display: 'none' }}
+    //         onSeeked={captureFrame}
+    //       />
+    // <canvas ref={canvasRef} style={{ display: 'none' }} />
+    //       <input
+    //         type="range"
+    //         min="0"
+    //         max={videoDuration}
+    //         step="0.1"
+    //         value={sliderValue}
+    //         onChange={handleSliderChange}
+    //       /> */}
+        {loadCover && capturedFrames.length <= (duration >= 14 ? 14 : duration) &&      
+        <LoaderContainer>
+            <Loader $isLoading={(loadCover)} />
+          </LoaderContainer>
+          }
+ 
+              <ImageSvg onClick={() => {capturedFrames.length <=0 && setLoadCover(true)}} aria-label="Photo outline icon" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
+                          <title>Photo outline icon</title>
+                          <path d="M6.549 5.013A1.557 1.557 0 1 0 8.106 6.57a1.557 1.557 0 0 0-1.557-1.557Z" fillRule="evenodd"></path>
+                          <path
+                            d="m2 18.605 3.901-3.9a.908.908 0 0 1 1.284 0l2.807 2.806a.908.908 0 0 0 1.283 0l5.534-5.534a.908.908 0 0 1 1.283 0l3.905 3.905"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          ></path>
+                          <path
+                            d="M18.44 2.004A3.56 3.56 0 0 1 22 5.564h0v12.873a3.56 3.56 0 0 1-3.56 3.56H5.568a3.56 3.56 0 0 1-3.56-3.56V5.563a3.56 3.56 0 0 1 3.56-3.56Z"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          ></path>
+                        </ImageSvg>
+            <ContainerVideo>
+
+        {loadCover && 
+        <>
+        <Slider frames={capturedFrames} selectedFrame={selectedFrame} onSelectFrame={setSelectedFrame}  setCover={setCover} indexForCover={indexForCover}/>
+      {capturedFrames.length <=0  && <VideoPlayer videoSrc={image} onFrameCapture={handleFrameCapture} duration={duration} setLoadCover={setLoadCover}/>}
+           
+
+          
+        </>
+            }
+           
+          </ContainerVideo>
+            
+
+          </CoverContainer> 
+    </>
+   }
+      
     </div>
   );
 };

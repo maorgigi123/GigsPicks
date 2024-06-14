@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { selectCurrentWs } from "./store/webSocket/ws.selector";
 import { setCurrentWs } from "./store/webSocket/ws.action";
-import { setAddMessage } from "./store/user/user.action";
+import { setAddMessage, setCurrentUser } from "./store/user/user.action";
 
 const LoaderContainer = styled.div`
   width: 100%;
@@ -188,10 +188,10 @@ comments: [{
   const [newMessage,setNewMessage] = useState()
   const location = useLocation();
   const navigate = useNavigate('/')
- 
 
   useEffect(() => {
     if(!user) return
+
     setLoad(true)
     // Initialize WebSocket connection
     ws.current = new WebSocket(`ws://localhost:3001?username=${user.username}`);
@@ -221,7 +221,7 @@ comments: [{
       console.error('WebSocket error:', error);
       setLoad(false)
       setError('something went wrong with the connection, please try again')
-      navigate('/')
+      dispatch(setCurrentUser(null))
     };
      // Clean up function
      return () => {
@@ -248,6 +248,8 @@ comments: [{
     };
   }, [user]);
 
+
+
     useEffect(() => {
       if(!newMessage) return
       if (timeOut.current) {
@@ -257,6 +259,7 @@ comments: [{
        
         setNewMessage()
       },4000)
+      
     },[newMessage])
 
     const isDirectRoute = location.pathname.startsWith('/direct');

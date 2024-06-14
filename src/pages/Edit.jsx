@@ -8,11 +8,18 @@ import { selectCurrentUser } from '../store/user/user.selector';
 import { useNavigate } from 'react-router-dom';
 const ProfileContainer = styled.div`
     min-height: 100vh;
+    width: 100%;
     display: flex;
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-left: 150px;
+    @media screen and (max-width: 1300px) {
+      margin-left: 50px;
+    }
+     @media screen and (max-width: 1023px) {
+      margin-left: 0px;
+    }
 `;
 
 const RightContainer = styled.div`
@@ -26,6 +33,9 @@ const EditProfileTitle = styled.h5`
     padding-top: 20px;
     padding-bottom: 20px;
     font-weight: bold;
+    text-align: center;
+    font-size: 1.5em;
+
 `;
 
 const ChnageProfileImageContainer =  styled.div`
@@ -35,6 +45,9 @@ const ChnageProfileImageContainer =  styled.div`
     justify-content: space-between;
     border-radius: 12px;
     padding: 12px;
+    @media screen and (max-width: 1023px) {
+      width: 500px;
+    }
 
 `;
 
@@ -106,6 +119,14 @@ const ModalContainerEditPost = styled.div`
   flex-direction: column;
   padding-top: 15px;
   position: absolute;
+
+
+  @media screen and (max-width: 1023px) {
+      width: 100%;
+      height: 100%;
+      border-radius: 0px;
+    }
+
 `;
 
 const ModelImageContainarEdit = styled.div`

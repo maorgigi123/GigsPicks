@@ -10,6 +10,9 @@ const HomeContainer = styled.div`
   margin-left: 100px;
   width: 650px;
   max-width: 650px;
+  @media screen and (max-width: 1300px) {
+    margin-left: 0px;
+  }
 `;
 
 const Home = () => {

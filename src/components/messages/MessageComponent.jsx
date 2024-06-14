@@ -12,10 +12,17 @@ const MessageContainer = styled.div`
     &:hover{
         background-color: var(--gray);
     }
+    @media screen and (max-width: 1300px){
+        align-items: center;
+        justify-content: center;
+    }
 `;
 
 const ProfileImageContainer = styled.div`
     padding: 12px 0px 0px 12px;
+    @media screen and (max-width: 1300px){
+        padding: 12px 0px 0px 0px;
+    }
 `;
 const ProfileImage = styled.img`
     border-radius: 50%;
@@ -28,6 +35,9 @@ const ProfileUserInfoContainer = styled.div`
      display: flex;
      flex-direction: column;
      gap: 5px;
+      @media screen and (max-width: 1300px){
+        display: none;
+    }
 `;
 const ProfileName = styled.p``;
 

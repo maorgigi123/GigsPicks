@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../store/user/user.selector";
 import ImageCropper from "./ImageCropper";
 import { nanoid } from "nanoid";
-import { generateVideoThumbnails } from "@rajesh896/video-thumbnails-generator";
 import { handleClickVideo } from "../../utils/Helper";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 const ModalBackground = styled.div`
@@ -29,6 +28,10 @@ const ModalContainer = styled.div`
   flex-direction: column;
   padding-top: 15px;
   position: absolute;
+  @media screen and (max-width: 1023px) {
+    width: 500px;
+    height: 60%;
+    }
 `;
 const CloseButtonContainer = styled.div`
   display: flex;
@@ -47,6 +50,7 @@ const CloseButton = styled.button`
   font-size: 1.5em;
   font-weight: bold;
   color: white;
+  
 `;
 const TitleText = styled.p`
 text-align: center;
@@ -115,6 +119,10 @@ const ModalContainerPost = styled.div`
   flex-direction: column;
   padding-top: 15px;
   position: absolute;
+  @media screen and (max-width: 1023px) {
+    width: 500px;
+    height: 60%;
+    }
 `;
 const ModelContainerPost =styled.div `
   height: 100%;
@@ -205,11 +213,15 @@ const SharePostContantWriteContainer = styled.div`
  display: flex;
  align-items: center;
  justify-content: center;
+ @media screen and (max-width: 1023px) {
+    height: 200px;
+    }
 `;
 const SharePostContantWrite = styled.textarea`
   background-color: transparent;
   padding-left: 8px;
   line-height: 1.5em;
+  height: 100%;
   border: none;
    resize: none;
   color: white;
@@ -232,6 +244,7 @@ const InputTags = styled.input`
   flex-grow: 1;
   padding: 4px;
   height: 30px;
+  width: 100%;
   background-color: transparent;
   border: none;
   border-bottom: 1px solid #464b50;
@@ -299,6 +312,10 @@ const ModalContainerEditPost = styled.div`
   flex-direction: column;
   padding-top: 15px;
   position: absolute;
+  @media screen and (max-width: 1023px) {
+    width: 500px;
+    height: 60%;
+    }
 `;
 
 const ModelImageContainarEdit = styled.div`
@@ -317,6 +334,9 @@ const TagList = styled.div`
   display: flex;
   gap:15px;
   flex-wrap: wrap;
+  @media screen and (max-width: 1023px) {
+    max-height: 80px;
+    }
 `;
 
 const Tag = styled.div`
@@ -352,17 +372,20 @@ const SmileComments = styled.div`
 `;
 const EmojiPickerButton = styled(EmojiPicker)`
   top: -480px;
-  left: -345px;
+  left: -345spx;
 `;
 
 const AddPostModel = ({OnClickCreate}) => {
 
   const [error, setError] = useState(null);
   const [previewImage, setPreviewImage] = useState([]);
+  const [cover,setCover] = useState([])
+  const [duration,setDuration] = useState([])
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [index,setIndex] = useState(0)
   const [editImage, setEditImage] = useState(true);
   const [openEmoji,setOpenEmoji] = useState(false)
+  const [load,setLoad] = useState(true);
 
   const [croppedArea, setCroppedArea] = useState([null]);
 
@@ -451,15 +474,15 @@ const RemoveTag = (tag) => {
 
 
   const onDrop = useCallback(acceptedFiles => {
+    setLoad(true)
     setError('');
-    setEditImage(true)
     handleUpload(acceptedFiles)
   }, [])
   const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop})
 
   const HandleImage = (e) => {
+    setLoad(true)
     setError('');
-    setEditImage(true)
     handleUpload(e.target.files)
     
   }
@@ -470,32 +493,95 @@ const RemoveTag = (tag) => {
       setError('No file selected');
       return;
     }
-   
     const fileArray = [];
     for (let i = 0; i < files.length; i++) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async() => {
         const fileData = {
           name: files[i].name,
           type: files[i].type,
           size: files[i].size,
           data: reader.result 
         };
-          setPreviewImage((prev) => [...prev,reader.result])
-          setCroppedArea((prev) => [...prev, []])
-         
+
+        if (files[i].type.startsWith('video/')) {
+          const data = await generateVideoThumbnail(reader.result);
+          setCover((prev) => [...prev, data[0]]);
+          fileData.duration = data[1]
+          setDuration((prev) => [...prev,data[1]])
+          if(fileData.duration > 60 && files.length > 1){
+            setPreviewImage([])
+            setCroppedArea([])
+            setEditImage(false)
+            setIndex(0)
+            setCover([])
+            setDuration([])
+            return setError('Cant Post Video With 1min video is on reels and one video');
+            
+          }
+        }
+        else{
+          setCover((prev) => [...prev, reader.result]);
+          setDuration((prev) => [...prev,0])
+        }
+        setPreviewImage((prev) => [...prev,reader.result])
+        setCroppedArea((prev) => [...prev, []])
         if(fileData.type.split('/')[0] === 'video')
             setIgnoreIndex((prev) => [...prev, i])
         fileArray.push(fileData);
         if (fileArray.length === files.length) {
           setSelectedFiles(fileArray);
         }
+        if( i <= files.length)
+        {
+          setEditImage(true)
+          setLoad(false)
+        }   
+       
       };
       reader.readAsDataURL(files[i]);
     }
-   
   };
  
+  // Function to generate a thumbnail from a video
+  const generateVideoThumbnail = async (videoSrc) => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.src = videoSrc;
+      video.crossOrigin = "anonymous"; // Ensure the video can be used for canvas operations
+      video.onloadeddata = () => {
+        if(video.duration > 600)
+          {
+            setPreviewImage([])
+            setCroppedArea([])
+            setEditImage(false)
+            setIndex(0)
+            setCover([])
+            setDuration([])
+            setError('Cant Post Video With 10min long');
+            return;
+          }
+        // Set the time to capture the frame
+        video.currentTime = 0; // Capture a frame at 1 second into the video
+      };
+
+      video.onseeked = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbnail = canvas.toDataURL('image/png');
+        resolve([thumbnail,video.duration]);
+      };
+
+      video.onerror = (error) => {
+        reject('Error loading video');
+      };
+    });
+  };
+  
+  
   
   const onClickSharePost = async() => {
     setError('')
@@ -521,6 +607,7 @@ const RemoveTag = (tag) => {
           content:contents,
           tags:tags,
           images : selectedFiles, // Send base64-encoded image data
+          cover:cover[0],
           folder // Send folder name
         }); 
         
@@ -623,15 +710,15 @@ const RemoveTag = (tag) => {
 
   return (
     <ModalBackground>
-      <CloseButtonContainer>
-        <CloseButton onClick={() => {OnClickCreate()}}>X</CloseButton>
+     
+      <CloseButtonContainer onClick={() => OnClickCreate()}>
+        <CloseButton>X</CloseButton>
       </CloseButtonContainer>
-
-      {previewImage.length >0 ? 
+      {previewImage.length >0 && !load ?
           editImage ? 
               <ModalContainerEditPost>
               <TopContainer>
-                    <BackPost onClick={()=> {setPreviewImage([]),setCroppedArea([]) ,setError(''),setEditImage(true),setIndex(0)}} className="mif-backspace mif-2x"/>
+                    <BackPost onClick={()=> {setPreviewImage([]),setCroppedArea([]) ,setError(''),setEditImage(true),setIndex(0),setCover([]),setDuration([])}} className="mif-backspace mif-2x"/>
                     <TitleTextPost>
                       Crop
                     </TitleTextPost>
@@ -642,12 +729,12 @@ const RemoveTag = (tag) => {
 
                 <ModelImageContainarEdit>
                         {previewImage.map((val, index) => {
-                         return <ImageCropper key={index} oref={ImageRef} image={previewImage[index]} setCroppedArea={setCroppedArea} index={index} CroppedAreaState={croppedArea}>
+                         return <ImageCropper key={index} oref={ImageRef} image={previewImage[index]} setCroppedArea={setCroppedArea} index={index} CroppedAreaState={croppedArea} cover={cover[index]} duration={duration[index]} setCover={setCover} indexForCover={index}>
                                   {/* <ModelImage ref={ImageRef} src={previewImage[0]} alt={`Preview image`} /> */}
                               </ImageCropper>
                         })}
 
-                        <ImageCropper ImageCropper oref={ImageRef} image={previewImage[index]} setCroppedArea={setCroppedArea} index={index} CroppedAreaState={croppedArea}>
+                        <ImageCropper ImageCropper oref={ImageRef} image={previewImage[index]} setCroppedArea={setCroppedArea} index={index} CroppedAreaState={croppedArea} cover={cover[index]} duration={duration[index]} setCover={setCover} indexForCover={index} >
                                   {/* <ModelImage ref={ImageRef} src={previewImage[0]} alt={`Preview image`} /> */}
                         </ImageCropper>
                         {previewImage.length > 1 && <LeftButton onClick={() => {ChangeImage(-1)}}/>}
@@ -660,75 +747,74 @@ const RemoveTag = (tag) => {
                 </ModelImageContainarEdit>
             </ModalContainerEditPost>  
                   
-            : 
-            
+                    : 
+        
+                <ModalContainerPost>
+                  <TopContainer>
+                    <BackPost onClick={()=> {
+                      tagsRef.current.value =''
+                      setError('')
+                      setEditImage(true)
+                      setIndex(0)
+                      setTags([])
+                    
+                      }} className="mif-backspace mif-2x"/>
+                    <TitleTextPost>
+                      Create new post
+                    </TitleTextPost>
+                    <SharePost onClick={onClickSharePost}>
+                      Share
+                    </SharePost>
+                  </TopContainer>
+                
+                    <LinePost/>
+                    <ModelContainerPost>
+                      <ModelImageContainar>
+                      {(previewImage[index].split(':')[1].split('/')[0] === 'video') ? <ModelCotnainerVideo>
+                          <ModelVideo ref={videoRef} loop preload="auto" onClick={handleClickVideo}>
+                              <ModelVideoSource src={previewImage[index]} type={previewImage[index].split(':')[1].split(';')[0]}/>
+                              Your browser does not support the video tag.
+                          </ModelVideo>
+                        </ModelCotnainerVideo> :  <ModelImage ref={ImageRef} src={imgAfterCrop} alt={`Preview image`} />}
+                      {previewImage.length > 1 && <LeftButton onClick={() => {ChangeImage(-1)}}/>}
+                      {previewImage.length > 1 && <RightButton onClick={() => {ChangeImage(1)}}/>}
+                        
+                      </ModelImageContainar>
+                        
+                        <ModelPostInfo>
+                                <TopSharePostInfoUserContainer>
+                                  <TopSharePostInfoUserImage src={user.profile_img} />
+                                  <TopSharePostInfoUsername>{user.username}</TopSharePostInfoUsername>
+                                </TopSharePostInfoUserContainer>
+                                <SharePostContantWriteContainer>
+                                    <SharePostContantWrite onChange={handleContentChange} ref={content} type="text" cols="40" rows="10"placeholder="Write a caption..." >
+                                    </SharePostContantWrite>
+                                </SharePostContantWriteContainer>
+                                <CounterWordsContainer> 
+                                <SmileComments>
+                                        <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
+                                      </svg>
+                                      <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
+                                  </SmileComments>
+                                  <CounterWords>{countText}/1000</CounterWords>
+                                </CounterWordsContainer>
+                              
+                                <InputTagsContainer>
+                                      <InputTagsText>Tags:</InputTagsText>
+                                      <InputTags ref={tagsRef} placeholder="example (food,games)" onKeyPress={handleKeyPress}/>
+                                </InputTagsContainer>
+                                <TagList>
+                                        {tags.map((tag, index) => (
+                                          <Tag key={index}><TagClose className="mif-highlight_remove" onClick={()=>RemoveTag(index)}/> {tag}</Tag>
+                                        ))}
+                                  </TagList>
 
-      <ModalContainerPost>
-        <TopContainer>
-          <BackPost onClick={()=> {
-            tagsRef.current.value =''
-            setError('')
-            setEditImage(true)
-            setIndex(0)
-            setTags([])
-           
-            }} className="mif-backspace mif-2x"/>
-          <TitleTextPost>
-            Create new post
-          </TitleTextPost>
-          <SharePost onClick={onClickSharePost}>
-            Share
-          </SharePost>
-        </TopContainer>
-       
-          <LinePost/>
-          <ModelContainerPost>
-            <ModelImageContainar>
-            {(previewImage[index].split(':')[1].split('/')[0] === 'video') ? <ModelCotnainerVideo>
-                <ModelVideo ref={videoRef} loop preload="auto" onClick={handleClickVideo}>
-                    <ModelVideoSource src={previewImage[index]} type={previewImage[index].split(':')[1].split(';')[0]}/>
-                    Your browser does not support the video tag.
-                </ModelVideo>
-              </ModelCotnainerVideo> :  <ModelImage ref={ImageRef} src={imgAfterCrop} alt={`Preview image`} />}
-            {previewImage.length > 1 && <LeftButton onClick={() => {ChangeImage(-1)}}/>}
-             {previewImage.length > 1 && <RightButton onClick={() => {ChangeImage(1)}}/>}
-               
-            </ModelImageContainar>
-               
-              <ModelPostInfo>
-                      <TopSharePostInfoUserContainer>
-                        <TopSharePostInfoUserImage src={user.profile_img} />
-                        <TopSharePostInfoUsername>{user.username}</TopSharePostInfoUsername>
-                      </TopSharePostInfoUserContainer>
-                      <SharePostContantWriteContainer>
-                          <SharePostContantWrite onChange={handleContentChange} ref={content} type="text" cols="40" rows="10"placeholder="Write a caption..." >
-                          </SharePostContantWrite>
-                      </SharePostContantWriteContainer>
-                      <CounterWordsContainer> 
-                      <SmileComments>
-                              <svg onClick={() => {setOpenEmoji((prev) => !prev)}} aria-label="Emoji" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Emoji</title><path d="M15.83 10.997a1.167 1.167 0 1 0 1.167 1.167 1.167 1.167 0 0 0-1.167-1.167Zm-6.5 1.167a1.167 1.167 0 1 0-1.166 1.167 1.167 1.167 0 0 0 1.166-1.167Zm5.163 3.24a3.406 3.406 0 0 1-4.982.007 1 1 0 1 0-1.557 1.256 5.397 5.397 0 0 0 8.09 0 1 1 0 0 0-1.55-1.263ZM12 .503a11.5 11.5 0 1 0 11.5 11.5A11.513 11.513 0 0 0 12 .503Zm0 21a9.5 9.5 0 1 1 9.5-9.5 9.51 9.51 0 0 1-9.5 9.5Z"></path>
-                            </svg>
-                            <EmojiPickerButton onEmojiClick={handleReaction} open={openEmoji} theme={Theme.DARK} lazyLoadEmojis={true}/>
-                        </SmileComments>
-                        <CounterWords>{countText}/1000</CounterWords>
-                      </CounterWordsContainer>
-                     
-                      <InputTagsContainer>
-                            <InputTagsText>Tags:</InputTagsText>
-                            <InputTags ref={tagsRef} placeholder="example (food,games)" onKeyPress={handleKeyPress}/>
-                      </InputTagsContainer>
-                      <TagList>
-                              {tags.map((tag, index) => (
-                                 <Tag key={index}><TagClose className="mif-highlight_remove" onClick={()=>RemoveTag(index)}/> {tag}</Tag>
-                              ))}
-                        </TagList>
-
-                      {error && <Error>Error: {error}</Error>}
-                      
-              </ModelPostInfo>
-          </ModelContainerPost>
-          
-      </ModalContainerPost>
+                                {error && <Error>Error: {error}</Error>}
+                                
+                        </ModelPostInfo>
+                    </ModelContainerPost>
+                    
+                </ModalContainerPost>
       
       : 
       <ModalContainer>
